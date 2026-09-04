@@ -335,6 +335,31 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void PlanAction_Move_DateBasedDestination_IsRecomputedPerFile_NotCachedAcrossFiles()
+        {
+            // User's concern: with a Destination like "..\{CreatedYear}_{CreatedMonth}\..." they
+            // worried the destination folder is computed once and reused for every file, so files
+            // created in different months would wrongly all land in the same folder. It isn't —
+            // PlanAction resolves variables fresh per file (per FileEntry's own CreatedUtc) — but
+            // there was no test pinning that guarantee down explicitly, so add one using their
+            // exact template shape.
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"..\{CreatedYear}_{CreatedMonth}\{OriginalName}.{OriginalExtension}" };
+
+            var januaryFile = MakeFile(@"D:\folder1\begin", "invoice.pdf");
+            januaryFile.CreatedUtc = new System.DateTime(2026, 1, 15);
+            var marchFile = MakeFile(@"D:\folder1\begin", "receipt.pdf");
+            marchFile.CreatedUtc = new System.DateTime(2026, 3, 20);
+
+            PlannedAction planJanuary = engine.PlanAction(januaryFile, action, januaryFile.FullPath);
+            PlannedAction planMarch = engine.PlanAction(marchFile, action, marchFile.FullPath);
+
+            planJanuary.ResolvedDestinationPath.Should().Be(@"D:\folder1\2026_01\invoice.pdf");
+            planMarch.ResolvedDestinationPath.Should().Be(@"D:\folder1\2026_03\receipt.pdf");
+        }
+
+        [Fact]
         public void PlanAction_CreateFolder_RelativeDestination_AnchorsToFilesOwnDirectory()
         {
             var fileOps = new FakeFileOperations();

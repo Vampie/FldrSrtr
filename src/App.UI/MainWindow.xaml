@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="FldrSrtr" Height="740" Width="1150"
         Loaded="Window_Loaded">
-    <TabControl Margin="8">
+    <TabControl x:Name="MainTabControl" Margin="8">
         <TabItem Header="Dashboard">
             <StackPanel Margin="16">
                 <Border BorderBrush="Gray" BorderThickness="1" Padding="12" Margin="0,0,0,16">
@@ -14,18 +14,20 @@
                             <TextBox x:Name="QuickActionSourceTextBox" Width="420" Margin="0,0,4,0" />
                             <Button Content="Bladeren..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowseQuickActionSource_Click" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <TextBlock Text="Destination:" Width="90" VerticalAlignment="Center" />
                             <TextBox x:Name="QuickActionDestinationTextBox" Width="420" Margin="0,0,4,0" />
                             <Button Content="Bladeren..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowseQuickActionDestination_Click" />
                         </StackPanel>
+                        <Button Content="Insert variable ▾" HorizontalAlignment="Left" Tag="Icons/icon-insert-variable.png" Style="{StaticResource IconButton}"
+                                Margin="90,0,0,8" Click="InsertQuickActionDestinationVariable_Click" />
                         <StackPanel Orientation="Horizontal">
                             <Button Content="Test (dry run)" Tag="Icons/icon-inspect.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="QuickActionDryRun_Click" />
                             <Button Content="Verplaats" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="QuickActionMove_Click" />
                             <Button Content="Kopieer" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="QuickActionCopy_Click" />
                         </StackPanel>
                         <TextBlock Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
-                                   Text="Verplaatst of kopieert alle bestanden uit de bronmap (niet recursief) naar Destination — zonder dat je hiervoor een folder/regel moet aanmaken. Bronmap en Destination worden bewaard en staan klaar bij het openen van FldrSrtr." />
+                                   Text="Verplaatst of kopieert alle bestanden uit de bronmap (niet recursief) naar Destination — zonder dat je hiervoor een folder/regel moet aanmaken. Destination mag variabelen bevatten (bv. ..\{CreatedYear}_{CreatedMonth}\{OriginalName}.{OriginalExtension}) en wordt voor elk bestand apart herberekend. Bronmap en Destination worden bewaard en staan klaar bij het openen van FldrSrtr." />
                     </StackPanel>
                 </Border>
 
@@ -87,7 +89,7 @@
             </StackPanel>
         </TabItem>
 
-        <TabItem Header="Folders">
+        <TabItem x:Name="FoldersTab" Header="Folders">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="280" />

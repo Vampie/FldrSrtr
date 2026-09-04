@@ -127,6 +127,9 @@ namespace FldrSrtr
             }
         }
 
+        private void InsertQuickActionDestinationVariable_Click(object sender, RoutedEventArgs e) =>
+            VariableMenuHelper.ShowVariableMenu((Button)sender, QuickActionDestinationTextBox);
+
         private void QuickActionDryRun_Click(object sender, RoutedEventArgs e) => RunQuickAction(ActionType.Move, dryRun: true);
 
         private void QuickActionMove_Click(object sender, RoutedEventArgs e) => RunQuickAction(ActionType.Move, dryRun: false);
@@ -191,10 +194,30 @@ namespace FldrSrtr
 
             List<ExecutionResult> results = engine.ExecuteRule(rule, files, dryRun);
 
+            // Show per-file results on the Folders tab's existing preview grid instead of just a
+            // count — the whole point of a dry run here is letting you actually see that each
+            // file's own Destination (e.g. one built from {CreatedYear}/{CreatedMonth}) really did
+            // get recomputed per file rather than reusing one resolved path for all of them.
+            _previewRows.Clear();
             int success = 0, skipped = 0, failed = 0;
+
             foreach (ExecutionResult result in results)
             {
-                if (result.Plan.Skipped)
+                PlannedAction plan = result.Plan;
+                string status = plan.Skipped ? "SKIPPED" : (result.Success ? (dryRun ? "PREVIEW" : "SUCCESS") : "ERROR");
+                string message = result.ErrorMessage ?? plan.SkipReason;
+
+                _previewRows.Add(new PreviewRow
+                {
+                    FileName = plan.File.Name,
+                    Action = plan.Action.Type.ToString(),
+                    FromPath = plan.OriginalPath,
+                    ToPath = plan.ResolvedDestinationPath,
+                    Status = status,
+                    Message = message
+                });
+
+                if (plan.Skipped)
                 {
                     skipped++;
                 }
@@ -213,25 +236,28 @@ namespace FldrSrtr
                     {
                         FolderPath = source,
                         RuleName = rule.Name,
-                        FileName = result.Plan.File.Name,
-                        Action = result.Plan.Action.Type.ToString(),
-                        Status = result.Plan.Skipped ? "WARNING" : (result.Success ? "SUCCESS" : "ERROR"),
-                        Message = result.ErrorMessage ?? result.Plan.SkipReason,
-                        OriginalPath = result.Plan.OriginalPath,
-                        DestinationPath = result.Plan.ResolvedDestinationPath,
-                        FileSizeBytes = result.Plan.File.SizeBytes
+                        FileName = plan.File.Name,
+                        Action = plan.Action.Type.ToString(),
+                        Status = plan.Skipped ? "WARNING" : (result.Success ? "SUCCESS" : "ERROR"),
+                        Message = message,
+                        OriginalPath = plan.OriginalPath,
+                        DestinationPath = plan.ResolvedDestinationPath,
+                        FileSizeBytes = plan.File.SizeBytes
                     });
                 }
             }
 
+            SummaryText.Text = dryRun
+                ? $"Snelle actie — {results.Count} bestand(en) zouden verwerkt worden ({skipped} overgeslagen)."
+                : $"Snelle actie — {results.Count} matched, {success} success, {skipped} skipped, {failed} failed.";
+
             if (!dryRun)
             {
                 RefreshActivity();
+                RefreshDashboard();
             }
 
-            MessageBox.Show(this,
-                $"{(dryRun ? "Test" : "Klaar")}: {matchCount} bestand(en) gematcht — {success} succesvol, {skipped} overgeslagen, {failed} mislukt.",
-                "FldrSrtr", MessageBoxButton.OK, failed > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information);
+            MainTabControl.SelectedItem = FoldersTab;
         }
 
         // ===================== Folders =====================
