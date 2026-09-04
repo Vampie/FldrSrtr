@@ -9,8 +9,11 @@ namespace App.Core.Model
         public string Name { get; set; } = "New rule";
         public bool Enabled { get; set; } = true;
         public int Priority { get; set; }
-        public ConditionLogic Logic { get; set; } = ConditionLogic.All;
-        public ObservableCollection<Condition> Conditions { get; set; } = new ObservableCollection<Condition>();
+
+        /// <summary>Root of the condition tree — always a Group node, even for a single flat condition.</summary>
+        public ConditionNode RootCondition { get; set; } = ConditionNode.NewGroup();
+
+        /// <summary>Executed in order per matched file; later actions act on the result of earlier ones.</summary>
         public ObservableCollection<RuleAction> Actions { get; set; } = new ObservableCollection<RuleAction>();
     }
 }

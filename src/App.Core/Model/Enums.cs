@@ -20,13 +20,26 @@ namespace App.Core.Model
         GreaterThan,
         GreaterOrEqual,
         LessThan,
-        LessOrEqual
+        LessOrEqual,
+
+        /// <summary>FileName only. "*" / "?" globbing.</summary>
+        Wildcard,
+
+        /// <summary>FileName only. Evaluated with a match timeout to guard against ReDoS.</summary>
+        Regex
     }
 
-    public enum ConditionLogic
+    public enum ConditionNodeType
+    {
+        Leaf,
+        Group
+    }
+
+    public enum GroupLogic
     {
         All,
-        Any
+        Any,
+        Not
     }
 
     public enum ActionType
@@ -41,6 +54,9 @@ namespace App.Core.Model
     {
         Skip,
         Overwrite,
-        Rename
+        Rename,
+
+        /// <summary>Delegates to IConflictPrompt at plan time; falls back to Rename if none is supplied.</summary>
+        Ask
     }
 }

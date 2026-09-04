@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO.Abstractions;
@@ -106,8 +107,24 @@ namespace FoldrSortr
                 return;
             }
 
-            var files = _scanner.Scan(folder.Path);
-            MessageBox.Show(this, $"{files.Count} bestand(en) gevonden in {folder.Path}.", "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Information);
+            var files = _scanner.Scan(folder);
+            MessageBox.Show(this, $"{files.Count} bestand(en) gevonden in {folder.Path}" +
+                (folder.Recursive ? " (recursief)." : "."), "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void FolderSettings_Click(object sender, RoutedEventArgs e)
+        {
+            WatchedFolder folder = SelectedFolder;
+            if (folder == null)
+            {
+                return;
+            }
+
+            var settings = new FolderSettingsWindow(folder) { Owner = this };
+            if (settings.ShowDialog() == true)
+            {
+                SaveConfig();
+            }
         }
 
         private void AddRule_Click(object sender, RoutedEventArgs e)
@@ -180,17 +197,17 @@ namespace FoldrSortr
                 return;
             }
 
-            var files = _scanner.Scan(folder.Path);
+            var files = _scanner.Scan(folder);
             var fileOps = new FileSystemFileOperations(_fileSystem, new ProtectedPathGuard());
-            var engine = new RuleEngine(fileOps);
-            var plans = engine.Plan(rule, files);
+            var engine = new RuleEngine(fileOps, new WpfConflictPrompt(this));
+            List<ExecutionResult> executionResults = engine.ExecuteRule(rule, files, dryRun);
 
             _previewRows.Clear();
             int success = 0, failed = 0, skipped = 0;
 
-            foreach (PlannedAction plan in plans)
+            foreach (ExecutionResult result in executionResults)
             {
-                ExecutionResult result = engine.Execute(plan, dryRun);
+                PlannedAction plan = result.Plan;
                 string status = plan.Skipped ? "SKIPPED" : (result.Success ? (dryRun ? "PREVIEW" : "SUCCESS") : "ERROR");
                 string message = result.ErrorMessage ?? plan.SkipReason;
 
@@ -225,8 +242,8 @@ namespace FoldrSortr
             }
 
             SummaryText.Text = dryRun
-                ? $"{plans.Count} bestand(en) zouden worden verwerkt ({skipped} zouden worden overgeslagen)."
-                : $"{plans.Count} matched, {success} success, {skipped} skipped, {failed} failed.";
+                ? $"{executionResults.Count} actie(s) zouden worden uitgevoerd ({skipped} zouden worden overgeslagen)."
+                : $"{executionResults.Count} matched, {success} success, {skipped} skipped, {failed} failed.";
 
             if (!dryRun)
             {

@@ -10,15 +10,18 @@ namespace App.Core.Execution
     /// <summary>
     /// Plans and executes rule actions. Dry-run and real execution share this exact code path —
     /// Execute(plan, dryRun: true) never calls into IFileOperations' mutating members, so what
-    /// you see in a preview is exactly what would happen for real.
+    /// you see in a preview is exactly what would happen for real. Actions within a rule run in
+    /// order per file, and each subsequent action acts on the *result* of the previous one.
     /// </summary>
     public class RuleEngine
     {
         private readonly IFileOperations _fileOps;
+        private readonly IConflictPrompt _conflictPrompt;
 
-        public RuleEngine(IFileOperations fileOps)
+        public RuleEngine(IFileOperations fileOps, IConflictPrompt conflictPrompt = null)
         {
             _fileOps = fileOps;
+            _conflictPrompt = conflictPrompt;
         }
 
         public IEnumerable<FileEntry> GetMatches(Rule rule, IEnumerable<FileEntry> files)
@@ -26,26 +29,63 @@ namespace App.Core.Execution
             return files.Where(f => ConditionEvaluator.Matches(rule, f));
         }
 
-        public List<PlannedAction> Plan(Rule rule, IEnumerable<FileEntry> files)
+        /// <summary>
+        /// Plans and executes every action of the rule, in order, for every matching file.
+        /// A file already seen in this run (e.g. duplicate scan results) is processed once —
+        /// the per-run "locking" guard called for in the project brief.
+        /// </summary>
+        public List<ExecutionResult> ExecuteRule(Rule rule, IEnumerable<FileEntry> files, bool dryRun)
         {
-            var plans = new List<PlannedAction>();
+            var results = new List<ExecutionResult>();
+            var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             foreach (FileEntry file in GetMatches(rule, files))
             {
+                if (!seenPaths.Add(file.FullPath))
+                {
+                    continue;
+                }
+
+                string currentPath = file.FullPath;
+
                 foreach (RuleAction action in rule.Actions)
                 {
-                    plans.Add(PlanAction(file, action));
+                    PlannedAction plan = PlanAction(file, action, currentPath);
+                    ExecutionResult result = Execute(plan, dryRun);
+                    results.Add(result);
+
+                    if (!result.Success)
+                    {
+                        break; // don't chain further actions onto a failed step
+                    }
+
+                    if (plan.Skipped)
+                    {
+                        continue; // conflict skip: file untouched, next action still sees the same path
+                    }
+
+                    if (action.Type == ActionType.DeleteToRecycleBin)
+                    {
+                        break; // file is gone, nothing left to chain onto
+                    }
+
+                    if (plan.ResolvedDestinationPath != null)
+                    {
+                        currentPath = plan.ResolvedDestinationPath;
+                    }
                 }
             }
-            return plans;
+
+            return results;
         }
 
-        public PlannedAction PlanAction(FileEntry file, RuleAction action)
+        public PlannedAction PlanAction(FileEntry file, RuleAction action, string currentPath)
         {
             var plan = new PlannedAction
             {
                 File = file,
                 Action = action,
-                OriginalPath = file.FullPath
+                OriginalPath = currentPath
             };
 
             if (action.Type == ActionType.DeleteToRecycleBin)
@@ -53,19 +93,14 @@ namespace App.Core.Execution
                 return plan;
             }
 
-            string desiredPath = ComputeDesiredPath(file, action);
+            string desiredPath = ComputeDesiredPath(currentPath, action);
             plan.ResolvedDestinationPath = ResolveConflict(desiredPath, action.OnConflict, plan);
             return plan;
         }
 
         public ExecutionResult Execute(PlannedAction plan, bool dryRun)
         {
-            if (plan.Skipped)
-            {
-                return new ExecutionResult { Plan = plan, Success = true };
-            }
-
-            if (dryRun)
+            if (plan.Skipped || dryRun)
             {
                 return new ExecutionResult { Plan = plan, Success = true };
             }
@@ -93,11 +128,16 @@ namespace App.Core.Execution
             }
         }
 
-        private static string ComputeDesiredPath(FileEntry file, RuleAction action)
+        private static string ComputeDesiredPath(string currentPath, RuleAction action)
         {
-            return action.Type == ActionType.Rename
-                ? Path.Combine(file.Directory, action.Destination)
-                : Path.Combine(action.Destination, file.Name);
+            if (action.Type == ActionType.Rename)
+            {
+                string directory = Path.GetDirectoryName(currentPath);
+                return Path.Combine(directory ?? string.Empty, action.Destination);
+            }
+
+            string fileName = Path.GetFileName(currentPath);
+            return Path.Combine(action.Destination, fileName);
         }
 
         private string ResolveConflict(string desiredPath, ConflictResolution resolution, PlannedAction plan)
@@ -105,6 +145,11 @@ namespace App.Core.Execution
             if (!_fileOps.FileExists(desiredPath))
             {
                 return desiredPath;
+            }
+
+            if (resolution == ConflictResolution.Ask)
+            {
+                resolution = _conflictPrompt?.Resolve(desiredPath, plan.OriginalPath) ?? ConflictResolution.Rename;
             }
 
             switch (resolution)

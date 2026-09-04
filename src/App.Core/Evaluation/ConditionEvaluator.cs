@@ -5,30 +5,46 @@ using App.Core.Model;
 
 namespace App.Core.Evaluation
 {
-    /// <summary>
-    /// Evaluates a rule's flat condition list against a file. Nested AND/OR/NOT groups and
-    /// regex/wildcard matching are Fase 2 — this only needs to support §3.3's basic operators.
-    /// </summary>
+    /// <summary>Evaluates a rule's nested AND/OR/NOT condition tree against a file.</summary>
     public static class ConditionEvaluator
     {
-        public static bool Matches(Rule rule, FileEntry file)
+        public static bool Matches(Rule rule, FileEntry file) => Evaluate(rule.RootCondition, file);
+
+        public static bool Evaluate(ConditionNode node, FileEntry file)
         {
-            if (rule.Conditions == null || rule.Conditions.Count == 0)
+            return node.NodeType == ConditionNodeType.Group
+                ? EvaluateGroup(node, file)
+                : EvaluateLeaf(node, file);
+        }
+
+        private static bool EvaluateGroup(ConditionNode group, FileEntry file)
+        {
+            if (group.Children == null || group.Children.Count == 0)
             {
                 return false;
             }
 
-            return rule.Logic == ConditionLogic.Any
-                ? rule.Conditions.Any(c => Evaluate(c, file))
-                : rule.Conditions.All(c => Evaluate(c, file));
+            switch (group.GroupLogic)
+            {
+                case GroupLogic.All:
+                    return group.Children.All(c => Evaluate(c, file));
+                case GroupLogic.Any:
+                    return group.Children.Any(c => Evaluate(c, file));
+                case GroupLogic.Not:
+                    // NOT negates "all children hold" — with one child that's plain negation;
+                    // with several it reads as NOT(AND(children)).
+                    return !group.Children.All(c => Evaluate(c, file));
+                default:
+                    return false;
+            }
         }
 
-        public static bool Evaluate(Condition condition, FileEntry file)
+        private static bool EvaluateLeaf(ConditionNode condition, FileEntry file)
         {
             switch (condition.Field)
             {
                 case ConditionField.FileName:
-                    return EvaluateText(condition, file.Name);
+                    return EvaluateFileName(condition, file.Name);
                 case ConditionField.Extension:
                     return EvaluateExtension(condition, file.Extension);
                 case ConditionField.Size:
@@ -40,8 +56,18 @@ namespace App.Core.Evaluation
             }
         }
 
-        private static bool EvaluateText(Condition condition, string actual)
+        private static bool EvaluateFileName(ConditionNode condition, string actual)
         {
+            if (condition.Operator == ConditionOperator.Wildcard)
+            {
+                return PatternMatcher.IsWildcardMatch(actual, condition.Value, condition.CaseSensitive);
+            }
+
+            if (condition.Operator == ConditionOperator.Regex)
+            {
+                return PatternMatcher.IsRegexMatch(actual, condition.Value, condition.CaseSensitive);
+            }
+
             StringComparison comparison = condition.CaseSensitive
                 ? StringComparison.Ordinal
                 : StringComparison.OrdinalIgnoreCase;
@@ -65,7 +91,7 @@ namespace App.Core.Evaluation
             }
         }
 
-        private static bool EvaluateExtension(Condition condition, string actualExtension)
+        private static bool EvaluateExtension(ConditionNode condition, string actualExtension)
         {
             string actual = (actualExtension ?? string.Empty).TrimStart('.');
 
@@ -84,7 +110,7 @@ namespace App.Core.Evaluation
             }
         }
 
-        private static bool EvaluateSize(Condition condition, long actualBytes)
+        private static bool EvaluateSize(ConditionNode condition, long actualBytes)
         {
             long expected = ParseLong(condition.Value);
 
@@ -101,7 +127,7 @@ namespace App.Core.Evaluation
             }
         }
 
-        private static bool EvaluateAge(Condition condition, DateTime modifiedUtc)
+        private static bool EvaluateAge(ConditionNode condition, DateTime modifiedUtc)
         {
             double ageDays = (DateTime.UtcNow - modifiedUtc).TotalDays;
             double expectedDays = ParseDouble(condition.Value);

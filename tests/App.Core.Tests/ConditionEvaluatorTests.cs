@@ -26,6 +26,9 @@ namespace App.Core.Tests
             };
         }
 
+        private static ConditionNode Leaf(ConditionField field, ConditionOperator op, string value, bool caseSensitive = false) =>
+            new ConditionNode { NodeType = ConditionNodeType.Leaf, Field = field, Operator = op, Value = value, CaseSensitive = caseSensitive };
+
         [Theory]
         [InlineData(ConditionOperator.Equals, "invoice.pdf", true)]
         [InlineData(ConditionOperator.Contains, "voice", true)]
@@ -34,79 +37,114 @@ namespace App.Core.Tests
         [InlineData(ConditionOperator.Equals, "other.pdf", false)]
         public void FileName_Operators(ConditionOperator op, string value, bool expected)
         {
-            var condition = new Condition { Field = ConditionField.FileName, Operator = op, Value = value };
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.FileName, op, value), MakeFile()).Should().Be(expected);
+        }
 
-            ConditionEvaluator.Evaluate(condition, MakeFile()).Should().Be(expected);
+        [Theory]
+        [InlineData("invoice*.pdf", true)]
+        [InlineData("*.txt", false)]
+        public void FileName_Wildcard(string pattern, bool expected)
+        {
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.FileName, ConditionOperator.Wildcard, pattern), MakeFile()).Should().Be(expected);
+        }
+
+        [Theory]
+        [InlineData(@"^invoice\.pdf$", true)]
+        [InlineData(@"^\d+$", false)]
+        public void FileName_Regex(string pattern, bool expected)
+        {
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.FileName, ConditionOperator.Regex, pattern), MakeFile()).Should().Be(expected);
+        }
+
+        [Fact]
+        public void FileName_Regex_CatastrophicPattern_TimesOutInsteadOfHanging()
+        {
+            var node = Leaf(ConditionField.FileName, ConditionOperator.Regex, "^(a+)+$");
+            var file = MakeFile(new string('a', 40) + "!");
+
+            Action act = () => ConditionEvaluator.Evaluate(node, file);
+
+            act.Should().NotThrow();
         }
 
         [Fact]
         public void Extension_IsOneOf_MatchesCaseInsensitive()
         {
-            var condition = new Condition
-            {
-                Field = ConditionField.Extension,
-                Operator = ConditionOperator.IsOneOf,
-                Value = "PDF, docx"
-            };
+            var node = Leaf(ConditionField.Extension, ConditionOperator.IsOneOf, "PDF, docx");
 
-            ConditionEvaluator.Evaluate(condition, MakeFile("report.pdf")).Should().BeTrue();
-            ConditionEvaluator.Evaluate(condition, MakeFile("report.txt")).Should().BeFalse();
+            ConditionEvaluator.Evaluate(node, MakeFile("report.pdf")).Should().BeTrue();
+            ConditionEvaluator.Evaluate(node, MakeFile("report.txt")).Should().BeFalse();
         }
 
         [Fact]
         public void Size_GreaterThan_ComparesBytes()
         {
-            var condition = new Condition { Field = ConditionField.Size, Operator = ConditionOperator.GreaterThan, Value = "1000" };
+            var node = Leaf(ConditionField.Size, ConditionOperator.GreaterThan, "1000");
 
-            ConditionEvaluator.Evaluate(condition, MakeFile(sizeBytes: 2000)).Should().BeTrue();
-            ConditionEvaluator.Evaluate(condition, MakeFile(sizeBytes: 500)).Should().BeFalse();
+            ConditionEvaluator.Evaluate(node, MakeFile(sizeBytes: 2000)).Should().BeTrue();
+            ConditionEvaluator.Evaluate(node, MakeFile(sizeBytes: 500)).Should().BeFalse();
         }
 
         [Fact]
         public void Age_GreaterThan_ComparesDaysSinceModified()
         {
-            var condition = new Condition { Field = ConditionField.Age, Operator = ConditionOperator.GreaterThan, Value = "30" };
+            var node = Leaf(ConditionField.Age, ConditionOperator.GreaterThan, "30");
 
-            ConditionEvaluator.Evaluate(condition, MakeFile(daysOld: 40)).Should().BeTrue();
-            ConditionEvaluator.Evaluate(condition, MakeFile(daysOld: 5)).Should().BeFalse();
+            ConditionEvaluator.Evaluate(node, MakeFile(daysOld: 40)).Should().BeTrue();
+            ConditionEvaluator.Evaluate(node, MakeFile(daysOld: 5)).Should().BeFalse();
         }
 
         [Fact]
-        public void Matches_WithAllLogic_RequiresEveryCondition()
+        public void Matches_AllGroup_RequiresEveryChild()
         {
-            var rule = new Rule
-            {
-                Logic = ConditionLogic.All,
-                Conditions =
-                {
-                    new Condition { Field = ConditionField.Extension, Operator = ConditionOperator.Equals, Value = "pdf" },
-                    new Condition { Field = ConditionField.Age, Operator = ConditionOperator.GreaterThan, Value = "30" }
-                }
-            };
+            var rule = new Rule { RootCondition = ConditionNode.NewGroup(GroupLogic.All) };
+            rule.RootCondition.Children.Add(Leaf(ConditionField.Extension, ConditionOperator.Equals, "pdf"));
+            rule.RootCondition.Children.Add(Leaf(ConditionField.Age, ConditionOperator.GreaterThan, "30"));
 
             ConditionEvaluator.Matches(rule, MakeFile("invoice.pdf", daysOld: 40)).Should().BeTrue();
             ConditionEvaluator.Matches(rule, MakeFile("invoice.pdf", daysOld: 5)).Should().BeFalse();
         }
 
         [Fact]
-        public void Matches_WithAnyLogic_RequiresAtLeastOneCondition()
+        public void Matches_AnyGroup_RequiresAtLeastOneChild()
         {
-            var rule = new Rule
-            {
-                Logic = ConditionLogic.Any,
-                Conditions =
-                {
-                    new Condition { Field = ConditionField.FileName, Operator = ConditionOperator.Contains, Value = "invoice" },
-                    new Condition { Field = ConditionField.FileName, Operator = ConditionOperator.Contains, Value = "factuur" }
-                }
-            };
+            var rule = new Rule { RootCondition = ConditionNode.NewGroup(GroupLogic.Any) };
+            rule.RootCondition.Children.Add(Leaf(ConditionField.FileName, ConditionOperator.Contains, "invoice"));
+            rule.RootCondition.Children.Add(Leaf(ConditionField.FileName, ConditionOperator.Contains, "factuur"));
 
             ConditionEvaluator.Matches(rule, MakeFile("factuur.pdf")).Should().BeTrue();
             ConditionEvaluator.Matches(rule, MakeFile("random.pdf")).Should().BeFalse();
         }
 
         [Fact]
-        public void Matches_WithNoConditions_NeverMatches()
+        public void Matches_NotGroup_NegatesChild()
+        {
+            var rule = new Rule { RootCondition = ConditionNode.NewGroup(GroupLogic.Not) };
+            rule.RootCondition.Children.Add(Leaf(ConditionField.Extension, ConditionOperator.Equals, "tmp"));
+
+            ConditionEvaluator.Matches(rule, MakeFile("invoice.pdf")).Should().BeTrue();
+            ConditionEvaluator.Matches(rule, MakeFile("cache.tmp")).Should().BeFalse();
+        }
+
+        [Fact]
+        public void Matches_NestedGroups_EvaluateRecursively()
+        {
+            // ALL( Extension=pdf, ANY( contains "invoice", contains "factuur" ) )
+            var rule = new Rule { RootCondition = ConditionNode.NewGroup(GroupLogic.All) };
+            rule.RootCondition.Children.Add(Leaf(ConditionField.Extension, ConditionOperator.Equals, "pdf"));
+
+            var nestedAny = ConditionNode.NewGroup(GroupLogic.Any);
+            nestedAny.Children.Add(Leaf(ConditionField.FileName, ConditionOperator.Contains, "invoice"));
+            nestedAny.Children.Add(Leaf(ConditionField.FileName, ConditionOperator.Contains, "factuur"));
+            rule.RootCondition.Children.Add(nestedAny);
+
+            ConditionEvaluator.Matches(rule, MakeFile("factuur.pdf")).Should().BeTrue();
+            ConditionEvaluator.Matches(rule, MakeFile("factuur.txt")).Should().BeFalse();
+            ConditionEvaluator.Matches(rule, MakeFile("random.pdf")).Should().BeFalse();
+        }
+
+        [Fact]
+        public void Matches_WithEmptyRootGroup_NeverMatches()
         {
             var rule = new Rule();
 

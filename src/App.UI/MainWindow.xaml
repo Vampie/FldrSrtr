@@ -21,6 +21,7 @@
                         <Button Content="+ Add folder" Margin="0,0,0,4" Click="AddFolder_Click" />
                         <Button Content="Remove folder" Margin="0,0,0,4" Click="RemoveFolder_Click" />
                         <Button Content="Open in Explorer" Margin="0,0,0,4" Click="OpenInExplorer_Click" />
+                        <Button Content="Folder settings" Margin="0,0,0,4" Click="FolderSettings_Click" />
                         <Button Content="Scan now" Click="ScanNow_Click" />
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Folders" FontWeight="Bold" Margin="0,0,0,4" />

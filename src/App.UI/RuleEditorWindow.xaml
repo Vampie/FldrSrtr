@@ -1,13 +1,18 @@
 <Window x:Class="FoldrSortr.RuleEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Rule editor" Height="620" Width="760"
+        xmlns:model="clr-namespace:App.Core.Model;assembly=App.Core"
+        xmlns:local="clr-namespace:FoldrSortr"
+        Title="Rule editor" Height="700" Width="900"
         WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <local:ConditionNodeLabelConverter x:Key="NodeLabelConverter" />
+    </Window.Resources>
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="260" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -20,41 +25,72 @@
             <CheckBox x:Name="EnabledCheckBox" Content="Enabled" VerticalAlignment="Center" Margin="20,0,0,0" IsChecked="True" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <TextBlock Text="Match:" VerticalAlignment="Center" Width="90" />
-            <ComboBox x:Name="LogicComboBox" Width="120" />
-        </StackPanel>
+        <TextBlock Text="Conditions:" FontWeight="Bold" Grid.Row="1" Margin="0,0,0,4" />
 
-        <TextBlock Text="Conditions:" FontWeight="Bold" Grid.Row="2" VerticalAlignment="Top" />
-        <DataGrid x:Name="ConditionsGrid" Grid.Row="2" Margin="0,20,0,0" AutoGenerateColumns="False"
-                  CanUserAddRows="False" ItemsSource="{Binding}">
-            <DataGrid.Columns>
-                <DataGridComboBoxColumn x:Name="FieldColumn" Header="Field" SelectedItemBinding="{Binding Field}" Width="110" />
-                <DataGridComboBoxColumn x:Name="OperatorColumn" Header="Operator" SelectedItemBinding="{Binding Operator}" Width="130" />
-                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" />
-                <DataGridCheckBoxColumn Header="Case-sensitive" Binding="{Binding CaseSensitive}" Width="100" />
-                <DataGridTemplateColumn Header="" Width="70">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Button Content="Remove" Click="RemoveCondition_Click" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-        <Button Content="+ Add condition" Grid.Row="3" HorizontalAlignment="Left" Margin="0,4,0,12" Click="AddCondition_Click" />
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="340" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Actions:" FontWeight="Bold" Grid.Row="4" VerticalAlignment="Top" />
-        <DataGrid x:Name="ActionsGrid" Grid.Row="4" Margin="0,20,0,0" AutoGenerateColumns="False"
-                  CanUserAddRows="False" ItemsSource="{Binding}">
+            <TreeView x:Name="ConditionsTree" Grid.Column="0" Margin="0,0,8,0"
+                      SelectedItemChanged="ConditionsTree_SelectedItemChanged">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type model:ConditionNode}" ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Converter={StaticResource NodeLabelConverter}}" />
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <StackPanel Grid.Column="1" x:Name="DetailsPanel">
+                <TextBlock x:Name="NoSelectionText" Text="Selecteer een groep of conditie hierboven." />
+
+                <StackPanel x:Name="GroupDetailsPanel" Visibility="Collapsed">
+                    <TextBlock Text="Groep — match:" FontWeight="Bold" Margin="0,0,0,4" />
+                    <ComboBox x:Name="GroupLogicComboBox" Width="120" HorizontalAlignment="Left"
+                              SelectionChanged="GroupLogicComboBox_SelectionChanged" />
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="+ Add condition" Margin="0,0,4,0" Click="AddConditionLeaf_Click" />
+                        <Button Content="+ Add group" Margin="0,0,4,0" Click="AddConditionGroup_Click" />
+                        <Button x:Name="RemoveGroupButton" Content="Remove this group" Click="RemoveSelectedNode_Click" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel x:Name="LeafDetailsPanel" Visibility="Collapsed">
+                    <TextBlock Text="Conditie" FontWeight="Bold" Margin="0,0,0,4" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Field:" Width="70" VerticalAlignment="Center" />
+                        <ComboBox x:Name="FieldComboBox" Width="120" SelectionChanged="LeafField_Changed" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Operator:" Width="70" VerticalAlignment="Center" />
+                        <ComboBox x:Name="OperatorComboBox" Width="150" SelectionChanged="LeafField_Changed" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Value:" Width="70" VerticalAlignment="Center" />
+                        <TextBox x:Name="ValueTextBox" Width="220" TextChanged="LeafField_Changed" />
+                    </StackPanel>
+                    <CheckBox x:Name="CaseSensitiveCheckBox" Content="Case-sensitive" Margin="70,0,0,10" Checked="LeafField_Changed" Unchecked="LeafField_Changed" />
+                    <Button Content="Remove this condition" HorizontalAlignment="Left" Click="RemoveSelectedNode_Click" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Text="Actions (uitgevoerd in volgorde):" FontWeight="Bold" Grid.Row="3" Margin="0,12,0,4" />
+
+        <DataGrid x:Name="ActionsGrid" Grid.Row="4" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding}">
             <DataGrid.Columns>
                 <DataGridComboBoxColumn x:Name="ActionTypeColumn" Header="Action" SelectedItemBinding="{Binding Type}" Width="140" />
                 <DataGridTextColumn Header="Destination / new name" Binding="{Binding Destination}" Width="*" />
                 <DataGridComboBoxColumn x:Name="OnConflictColumn" Header="On conflict" SelectedItemBinding="{Binding OnConflict}" Width="120" />
-                <DataGridTemplateColumn Header="" Width="70">
+                <DataGridTemplateColumn Header="" Width="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="Remove" Click="RemoveAction_Click" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Up" Width="40" Click="MoveActionUp_Click" />
+                                <Button Content="Down" Width="50" Click="MoveActionDown_Click" />
+                                <Button Content="Remove" Click="RemoveAction_Click" />
+                            </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
