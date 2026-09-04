@@ -55,6 +55,20 @@ namespace App.Infrastructure.Tests
         }
 
         [Fact]
+        public void LoadOrCreateDefault_RoundTripsIconOverrides()
+        {
+            var sut = new ConfigService(_tempDir);
+            var saved = new AppConfig();
+            saved.Settings.IconOverrides["icon-add.png"] = @"C:\MyIcons\add.png";
+            sut.Save(saved);
+
+            var reloaded = sut.LoadOrCreateDefault();
+
+            reloaded.Settings.IconOverrides.Should().ContainKey("icon-add.png")
+                .WhoseValue.Should().Be(@"C:\MyIcons\add.png");
+        }
+
+        [Fact]
         public void SaveSettings_OnlyTouchesGeneralConfigFile()
         {
             var sut = new ConfigService(_tempDir);

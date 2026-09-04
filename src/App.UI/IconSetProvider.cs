@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using App.Infrastructure.Configuration;
@@ -26,10 +27,21 @@ namespace FldrSrtr
 
         public static string BasePath { get; private set; } = DefaultSetFolder;
 
+        /// <summary>Per-icon overrides on top of BasePath — see AppSettings.IconOverrides.
+        /// Key: icon filename (e.g. "icon-add.png"); value: absolute path to the replacement PNG.</summary>
+        public static IReadOnlyDictionary<string, string> Overrides { get; private set; } = new Dictionary<string, string>();
+
         public static void ApplySetting(string iconSetName)
         {
             string candidate = Path.Combine(IconSetsRootFolder, string.IsNullOrWhiteSpace(iconSetName) ? DefaultSetName : iconSetName);
             BasePath = Directory.Exists(candidate) ? candidate : DefaultSetFolder;
+        }
+
+        public static void ApplyOverrides(IDictionary<string, string> overrides)
+        {
+            Overrides = overrides != null
+                ? new Dictionary<string, string>(overrides, StringComparer.OrdinalIgnoreCase)
+                : new Dictionary<string, string>();
         }
 
         /// <summary>Every pack folder found under IconSets — a plain directory listing, so a
@@ -49,6 +61,22 @@ namespace FldrSrtr
                 .ToArray();
 
             return names.Length > 0 ? names : new[] { DefaultSetName };
+        }
+
+        /// <summary>Every icon key the app can show, derived from the Default pack's own files —
+        /// the single source of truth for "which icons exist", so a new default icon added later
+        /// shows up here automatically.</summary>
+        public static string[] GetAllIconKeys()
+        {
+            if (!Directory.Exists(DefaultSetFolder))
+            {
+                return new string[0];
+            }
+
+            return Directory.GetFiles(DefaultSetFolder, "*.png")
+                .Select(Path.GetFileName)
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
         }
     }
 }

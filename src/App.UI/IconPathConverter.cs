@@ -7,10 +7,11 @@ namespace FldrSrtr
 {
     /// <summary>
     /// Resolves a button's Tag (e.g. "Icons/icon-add.png" — the filename is all that matters, the
-    /// folder prefix is historical and ignored) to an absolute file path in the currently active
-    /// icon pack (IconSetProvider.BasePath). Falls back to the Default pack when the active pack
-    /// doesn't have that specific file, so a partial custom pack — someone overriding just a few
-    /// icons — still renders everything else instead of going blank.
+    /// folder prefix is historical and ignored) to an absolute file path. Checks, in order: a
+    /// user-picked per-icon override (IconSetProvider.Overrides — someone's own file, doesn't even
+    /// need to live under IconSets\), the currently active icon pack (IconSetProvider.BasePath),
+    /// then the Default pack — so a partial override or a partial custom pack still renders
+    /// everything else instead of going blank.
     /// </summary>
     public class IconPathConverter : IValueConverter
     {
@@ -24,6 +25,12 @@ namespace FldrSrtr
             }
 
             string fileName = Path.GetFileName(path);
+
+            if (IconSetProvider.Overrides.TryGetValue(fileName, out string overridePath) && File.Exists(overridePath))
+            {
+                return overridePath;
+            }
+
             string inActiveSet = Path.Combine(IconSetProvider.BasePath, fileName);
             if (File.Exists(inActiveSet))
             {

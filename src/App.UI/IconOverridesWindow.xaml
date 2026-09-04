@@ -1,0 +1,47 @@
+<Window x:Class="FldrSrtr.IconOverridesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:FldrSrtr"
+        Title="Eigen iconen" Height="520" Width="620"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,12"
+                   Text="Wijs voor elk icoontje eventueel een eigen afbeelding toe (PNG). Zonder eigen keuze wordt de actieve icoonset (Settings) gebruikt, of de Default-set als die het icoontje niet heeft." />
+
+        <ListBox Grid.Row="1" x:Name="RowsListBox">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="160" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="{Binding PreviewPath}" Width="20" Height="20" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding Key}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                        <TextBlock Grid.Column="2" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="8,0,8,0"
+                                   TextTrimming="CharacterEllipsis" Foreground="Gray" />
+                        <Button Grid.Column="3" Content="Bladeren..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}"
+                                Margin="0,0,4,0" Click="Browse_Click" />
+                        <Button Grid.Column="4" Content="Reset" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}"
+                                IsEnabled="{Binding OverridePath, Converter={x:Static local:IsNotNullOrEmptyConverter.Instance}}"
+                                Click="Reset_Click" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Cancel" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
+            <Button Content="Save" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Width="90" Click="Save_Click" IsDefault="True" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -24,6 +24,7 @@ namespace FldrSrtr
             {
                 var config = new ConfigService().LoadOrCreateDefault();
                 IconSetProvider.ApplySetting(config.Settings.IconSet);
+                IconSetProvider.ApplyOverrides(config.Settings.IconOverrides);
             }
             catch (System.InvalidOperationException ex)
             {

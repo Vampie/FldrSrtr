@@ -273,7 +273,10 @@
                     <ComboBox x:Name="IconSetComboBox" Width="120" />
                 </StackPanel>
                 <TextBlock Text="Wordt direct toegepast bij opslaan. Eigen sets: zet een map met dezelfde bestandsnamen in IconSets\ naast FldrSrtr.exe."
-                           Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
+                           Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <Button Content="Eigen iconen..." Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Click="IconOverrides_Click" />
+                </StackPanel>
 
                 <TextBlock Text="Backups" FontWeight="Bold" Margin="0,0,0,8" />
                 <CheckBox x:Name="BackupOnSettingsChangeCheckBox" Content="Backup maken van general.config.json bij elke gewijzigde instelling" Margin="0,0,0,4" />

@@ -705,6 +705,24 @@ namespace FldrSrtr
             MessageBox.Show(this, "Instellingen opgeslagen.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        private void IconOverrides_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new IconOverridesWindow(_config.Settings.IconOverrides) { Owner = this };
+            if (window.ShowDialog() != true)
+            {
+                return;
+            }
+
+            IconSetProvider.ApplyOverrides(_config.Settings.IconOverrides);
+            SaveSettingsConfig();
+
+            if (!TryRefreshIconsLive())
+            {
+                MessageBox.Show(this, "Instellingen opgeslagen. Herstart FldrSrtr om alle eigen iconen overal toe te passen.",
+                    "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         /// <summary>
         /// Re-runs IconPathConverter for every icon Image already on screen, across every open
         /// window, so a changed icon set applies immediately without a restart. This is cheap
