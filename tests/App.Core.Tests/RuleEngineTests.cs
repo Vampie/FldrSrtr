@@ -238,6 +238,52 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void PlanAction_Move_RelativeDestination_AnchorsToFilesOwnDirectory_NotProcessWorkingDirectory()
+        {
+            // Reported bug: a Destination like "{Year}_{Month}\{Day}\{FileName}_1.{Extension}"
+            // (no drive letter, no {Directory} token) used to resolve as a bare relative path,
+            // which .NET treats as relative to the process's working directory — for a portable
+            // exe, that's wherever it's run from, so files ended up in subfolders next to the exe
+            // instead of next to the source file.
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"Archive\{Year}" };
+            var now = new System.DateTime(2026, 3, 5);
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath, now);
+
+            plan.ResolvedDestinationPath.Should().Be(@"C:\Downloads\Archive\2026\invoice.pdf");
+        }
+
+        [Fact]
+        public void PlanAction_Move_AbsoluteDestination_IsUsedAsIs()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+
+            plan.ResolvedDestinationPath.Should().Be(@"D:\Archive\invoice.pdf");
+        }
+
+        [Fact]
+        public void PlanAction_CreateFolder_RelativeDestination_AnchorsToFilesOwnDirectory()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.CreateFolder, Destination = @"Archive\{Year}" };
+            var now = new System.DateTime(2026, 3, 5);
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath, now);
+
+            plan.ResolvedDestinationPath.Should().Be(@"C:\Downloads\Archive\2026");
+        }
+
+        [Fact]
         public void PlanAction_Move_ResolvesVariablesInDestination()
         {
             var fileOps = new FakeFileOperations();

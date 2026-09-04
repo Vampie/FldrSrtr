@@ -25,6 +25,8 @@ namespace App.Core.Evaluation
                     return new[]
                     {
                         ConditionOperator.Equals, ConditionOperator.NotEquals,
+                        ConditionOperator.Contains, ConditionOperator.StartsWith, ConditionOperator.EndsWith,
+                        ConditionOperator.Wildcard, ConditionOperator.Regex,
                         ConditionOperator.IsOneOf, ConditionOperator.IsNotOneOf
                     };
                 case ConditionField.Size:
@@ -43,6 +45,14 @@ namespace App.Core.Evaluation
                     };
                 case ConditionField.Duplicate:
                     return new[] { ConditionOperator.Equals, ConditionOperator.NotEquals };
+                case ConditionField.CreatedDate:
+                case ConditionField.ModifiedDate:
+                case ConditionField.AccessedDate:
+                    return new[]
+                    {
+                        ConditionOperator.Equals, ConditionOperator.NotEquals,
+                        ConditionOperator.Before, ConditionOperator.After, ConditionOperator.Between
+                    };
                 default:
                     return new ConditionOperator[0];
             }

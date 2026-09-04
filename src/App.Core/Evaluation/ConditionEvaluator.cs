@@ -44,7 +44,7 @@ namespace App.Core.Evaluation
             switch (condition.Field)
             {
                 case ConditionField.FileName:
-                    return EvaluateFileName(condition, file.Name);
+                    return EvaluateText(condition, file.Name);
                 case ConditionField.Extension:
                     return EvaluateExtension(condition, file.Extension);
                 case ConditionField.Size:
@@ -53,6 +53,12 @@ namespace App.Core.Evaluation
                     return EvaluateAge(condition, file.ModifiedUtc);
                 case ConditionField.Duplicate:
                     return EvaluateDuplicate(condition, file.IsDuplicate);
+                case ConditionField.CreatedDate:
+                    return EvaluateDate(condition, file.CreatedUtc);
+                case ConditionField.ModifiedDate:
+                    return EvaluateDate(condition, file.ModifiedUtc);
+                case ConditionField.AccessedDate:
+                    return EvaluateDate(condition, file.AccessedUtc);
                 default:
                     return false;
             }
@@ -64,7 +70,8 @@ namespace App.Core.Evaluation
             return condition.Operator == ConditionOperator.NotEquals ? isDuplicate != expected : isDuplicate == expected;
         }
 
-        private static bool EvaluateFileName(ConditionNode condition, string actual)
+        /// <summary>Shared text matching for FileName and (via EvaluateExtension) Extension.</summary>
+        private static bool EvaluateText(ConditionNode condition, string actual)
         {
             if (condition.Operator == ConditionOperator.Wildcard)
             {
@@ -105,16 +112,14 @@ namespace App.Core.Evaluation
 
             switch (condition.Operator)
             {
-                case ConditionOperator.Equals:
-                    return string.Equals(actual, TrimDot(condition.Value), StringComparison.OrdinalIgnoreCase);
-                case ConditionOperator.NotEquals:
-                    return !string.Equals(actual, TrimDot(condition.Value), StringComparison.OrdinalIgnoreCase);
                 case ConditionOperator.IsOneOf:
                     return SplitList(condition.Value).Any(v => string.Equals(actual, v, StringComparison.OrdinalIgnoreCase));
                 case ConditionOperator.IsNotOneOf:
                     return !SplitList(condition.Value).Any(v => string.Equals(actual, v, StringComparison.OrdinalIgnoreCase));
                 default:
-                    return false; // unsupported operator for this field — fail safe rather than crash the run
+                    // Equals/NotEquals/Contains/StartsWith/EndsWith/Wildcard/Regex — same as FileName,
+                    // just compared against the extension text (and values get their leading dot trimmed).
+                    return EvaluateText(CloneWithValue(condition, TrimDot(condition.Value)), actual);
             }
         }
 
@@ -151,6 +156,55 @@ namespace App.Core.Evaluation
                     return false; // unsupported operator for this field — fail safe rather than crash the run
             }
         }
+
+        /// <summary>Absolute calendar-date comparison for CreatedDate/ModifiedDate/AccessedDate.</summary>
+        private static bool EvaluateDate(ConditionNode condition, DateTime actualUtc)
+        {
+            DateTime actualLocal = actualUtc.ToLocalTime().Date;
+
+            switch (condition.Operator)
+            {
+                case ConditionOperator.Before:
+                    return TryParseDate(condition.Value, out DateTime before) && actualLocal < before;
+                case ConditionOperator.After:
+                    return TryParseDate(condition.Value, out DateTime after) && actualLocal > after;
+                case ConditionOperator.Between:
+                    return TryParseDateRange(condition.Value, out DateTime from, out DateTime to) &&
+                           actualLocal >= from && actualLocal <= to;
+                case ConditionOperator.Equals:
+                    return TryParseDate(condition.Value, out DateTime equalsDate) && actualLocal == equalsDate;
+                case ConditionOperator.NotEquals:
+                    return TryParseDate(condition.Value, out DateTime notEqualsDate) && actualLocal != notEqualsDate;
+                default:
+                    return false; // unsupported operator for this field — fail safe rather than crash the run
+            }
+        }
+
+        private static bool TryParseDate(string value, out DateTime date) =>
+            DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+
+        private static bool TryParseDateRange(string value, out DateTime from, out DateTime to)
+        {
+            from = default;
+            to = default;
+
+            string[] parts = (value ?? string.Empty).Split(',');
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            return TryParseDate(parts[0].Trim(), out from) && TryParseDate(parts[1].Trim(), out to);
+        }
+
+        private static ConditionNode CloneWithValue(ConditionNode source, string value) => new ConditionNode
+        {
+            NodeType = source.NodeType,
+            Field = source.Field,
+            Operator = source.Operator,
+            Value = value,
+            CaseSensitive = source.CaseSensitive
+        };
 
         private static string TrimDot(string value) => (value ?? string.Empty).TrimStart('.');
 

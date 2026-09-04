@@ -115,7 +115,8 @@ namespace App.Core.Execution
 
                 case ActionType.CreateFolder:
                 case ActionType.Zip:
-                    plan.ResolvedDestinationPath = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow);
+                    plan.ResolvedDestinationPath = MakeAbsolute(
+                        VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow), currentPath);
                     return plan;
 
                 case ActionType.AddExtension:
@@ -147,13 +148,30 @@ namespace App.Core.Execution
                 default: // Move, Copy
                     {
                         string template = action.Destination ?? string.Empty;
-                        string resolved = VariableResolver.Resolve(template, file, currentPath, effectiveNow);
+                        string resolved = MakeAbsolute(VariableResolver.Resolve(template, file, currentPath, effectiveNow), currentPath);
                         bool includesFileName = template.Contains("{FileName}") || template.Contains("{OriginalName}");
                         string desired = includesFileName ? resolved : Path.Combine(resolved, Path.GetFileName(currentPath));
                         plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
                         return plan;
                     }
             }
+        }
+
+        /// <summary>
+        /// A Destination template without a drive letter or {Directory} token (e.g.
+        /// "{Year}_{Month}\{Day}") used to resolve relative to the process's working directory —
+        /// which for a portable exe is wherever it happens to be run from, not the folder being
+        /// processed. Anchor it to the current file's own directory instead.
+        /// </summary>
+        private static string MakeAbsolute(string path, string currentPath)
+        {
+            if (string.IsNullOrEmpty(path) || Path.IsPathRooted(path))
+            {
+                return path;
+            }
+
+            string baseDirectory = Path.GetDirectoryName(currentPath) ?? string.Empty;
+            return Path.Combine(baseDirectory, path);
         }
 
         public ExecutionResult Execute(PlannedAction plan, bool dryRun)

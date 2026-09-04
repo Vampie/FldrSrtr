@@ -5,10 +5,21 @@ namespace App.Core.Model
         FileName,
         Extension,
         Size,
+
+        /// <summary>Relative — "older/newer than X days", based on ModifiedUtc.</summary>
         Age,
 
         /// <summary>True if another file in the same run has identical content (SHA-256).</summary>
-        Duplicate
+        Duplicate,
+
+        /// <summary>Absolute calendar date — Before/After/Between/Equals. Based on CreatedUtc.</summary>
+        CreatedDate,
+
+        /// <summary>Absolute calendar date — Before/After/Between/Equals. Based on ModifiedUtc.</summary>
+        ModifiedDate,
+
+        /// <summary>Absolute calendar date — Before/After/Between/Equals. Based on AccessedUtc.</summary>
+        AccessedDate
     }
 
     public enum ConditionOperator
@@ -25,11 +36,20 @@ namespace App.Core.Model
         LessThan,
         LessOrEqual,
 
-        /// <summary>FileName only. "*" / "?" globbing.</summary>
+        /// <summary>FileName/Extension only. "*" / "?" globbing.</summary>
         Wildcard,
 
-        /// <summary>FileName only. Evaluated with a match timeout to guard against ReDoS.</summary>
-        Regex
+        /// <summary>FileName/Extension only. Evaluated with a match timeout to guard against ReDoS.</summary>
+        Regex,
+
+        /// <summary>Date fields only. Value is a single date (e.g. "2026-03-01").</summary>
+        Before,
+
+        /// <summary>Date fields only. Value is a single date (e.g. "2026-03-01").</summary>
+        After,
+
+        /// <summary>Date fields only. Value is "from,to" (e.g. "2026-01-01,2026-03-01").</summary>
+        Between
     }
 
     public enum ConditionNodeType

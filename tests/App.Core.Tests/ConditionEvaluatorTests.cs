@@ -67,6 +67,20 @@ namespace App.Core.Tests
             act.Should().NotThrow();
         }
 
+        [Theory]
+        [InlineData(ConditionOperator.Contains, "tm")]
+        [InlineData(ConditionOperator.StartsWith, "ht")]
+        [InlineData(ConditionOperator.EndsWith, "ml")]
+        [InlineData(ConditionOperator.Wildcard, "h*l")]
+        [InlineData(ConditionOperator.Regex, "^html$")]
+        public void Extension_SharesFileNamesTextOperators(ConditionOperator op, string value)
+        {
+            var node = Leaf(ConditionField.Extension, op, value);
+
+            ConditionEvaluator.Evaluate(node, MakeFile("page.html")).Should().BeTrue();
+            ConditionEvaluator.Evaluate(node, MakeFile("page.pdf")).Should().BeFalse();
+        }
+
         [Fact]
         public void Extension_IsOneOf_MatchesCaseInsensitive()
         {
@@ -164,16 +178,16 @@ namespace App.Core.Tests
         }
 
         [Theory]
-        [InlineData(ConditionField.Extension, ConditionOperator.Contains)]
+        [InlineData(ConditionField.Extension, ConditionOperator.GreaterThan)]
         [InlineData(ConditionField.FileName, ConditionOperator.GreaterThan)]
         [InlineData(ConditionField.Age, ConditionOperator.Contains)]
         [InlineData(ConditionField.Size, ConditionOperator.StartsWith)]
         public void Evaluate_MismatchedFieldAndOperator_FailsSafeInsteadOfThrowing(ConditionField field, ConditionOperator op)
         {
             // Regression: a hand-edited or imported rule.json can pair any operator with any
-            // field (e.g. Extension + Contains). This used to throw NotSupportedException from
-            // inside RuleEngine.GetMatches' LINQ Where clause, crashing the whole app on one bad
-            // rule — exactly the kind of single-file failure §4.2 says must never take down a run.
+            // field. This used to throw NotSupportedException from inside RuleEngine.GetMatches'
+            // LINQ Where clause, crashing the whole app on one bad rule — exactly the kind of
+            // single-file failure §4.2 says must never take down a run.
             var node = Leaf(field, op, "x");
 
             Action act = () => ConditionEvaluator.Evaluate(node, MakeFile());
@@ -183,21 +197,80 @@ namespace App.Core.Tests
         }
 
         [Fact]
-        public void Matches_ReportedCrashRule_AnyGroupWithMismatchedSecondLeaf_DoesNotThrow()
+        public void ModifiedDate_Before_ComparesCalendarDate()
         {
-            // The exact shape from the user-reported crash: ANY(Age LessThan 20, Extension Contains "htm").
-            // A file where the first (valid) branch is false forces evaluation into the second,
-            // invalid Extension+Contains branch.
+            var file = MakeFile(daysOld: 40); // modified ~40 days ago
+            string futureDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+            string pastDate = DateTime.Now.AddDays(-1000).ToString("yyyy-MM-dd");
+
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.ModifiedDate, ConditionOperator.Before, futureDate), file).Should().BeTrue();
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.ModifiedDate, ConditionOperator.Before, pastDate), file).Should().BeFalse();
+        }
+
+        [Fact]
+        public void ModifiedDate_After_ComparesCalendarDate()
+        {
+            var file = MakeFile(daysOld: 5);
+            string pastDate = DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd");
+
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.ModifiedDate, ConditionOperator.After, pastDate), file).Should().BeTrue();
+        }
+
+        [Fact]
+        public void ModifiedDate_Between_MatchesInclusiveRange()
+        {
+            var file = MakeFile(daysOld: 10);
+            string from = DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd");
+            string to = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+            string outsideFrom = DateTime.Now.AddDays(-9).ToString("yyyy-MM-dd");
+            string outsideTo = DateTime.Now.AddDays(-8).ToString("yyyy-MM-dd");
+
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.ModifiedDate, ConditionOperator.Between, $"{from},{to}"), file).Should().BeTrue();
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.ModifiedDate, ConditionOperator.Between, $"{outsideFrom},{outsideTo}"), file).Should().BeFalse();
+        }
+
+        [Fact]
+        public void CreatedDate_And_AccessedDate_UseTheirOwnTimestamps()
+        {
+            var file = MakeFile(daysOld: 40);
+            file.CreatedUtc = DateTime.UtcNow.AddDays(-5);
+            file.AccessedUtc = DateTime.UtcNow.AddDays(-1);
+
+            string recentCutoff = DateTime.Now.AddDays(-10).ToString("yyyy-MM-dd");
+
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.CreatedDate, ConditionOperator.After, recentCutoff), file).Should().BeTrue();
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.AccessedDate, ConditionOperator.After, recentCutoff), file).Should().BeTrue();
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.ModifiedDate, ConditionOperator.After, recentCutoff), file).Should().BeFalse();
+        }
+
+        [Fact]
+        public void DateField_UnparsableValue_FailsSafeInsteadOfThrowing()
+        {
+            var node = Leaf(ConditionField.ModifiedDate, ConditionOperator.Before, "not-a-date");
+
+            Action act = () => ConditionEvaluator.Evaluate(node, MakeFile());
+
+            act.Should().NotThrow();
+            ConditionEvaluator.Evaluate(node, MakeFile()).Should().BeFalse();
+        }
+
+        [Fact]
+        public void Matches_ReportedCrashRule_ExtensionContainsIsNowASupportedCombination()
+        {
+            // The exact shape from the original user-reported crash: ANY(Age LessThan 20,
+            // Extension Contains "htm"). Extension+Contains used to be unsupported and crashed
+            // the app; Extension now shares FileName's full operator set, so this is a legitimate
+            // match rather than a fail-safe false — and, either way, it must never throw.
             var rule = new Rule { RootCondition = ConditionNode.NewGroup(GroupLogic.Any) };
             rule.RootCondition.Children.Add(Leaf(ConditionField.Age, ConditionOperator.LessThan, "20"));
             rule.RootCondition.Children.Add(Leaf(ConditionField.Extension, ConditionOperator.Contains, "htm"));
 
-            var oldFile = MakeFile("archive.html", daysOld: 40); // Age branch false -> falls through to bad branch
+            var oldFile = MakeFile("archive.html", daysOld: 40); // Age branch false -> falls through to the Extension branch
 
             Action act = () => ConditionEvaluator.Matches(rule, oldFile);
 
             act.Should().NotThrow();
-            ConditionEvaluator.Matches(rule, oldFile).Should().BeFalse();
+            ConditionEvaluator.Matches(rule, oldFile).Should().BeTrue();
         }
 
         [Fact]
