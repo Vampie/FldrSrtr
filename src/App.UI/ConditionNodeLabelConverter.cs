@@ -20,9 +20,9 @@ namespace FldrSrtr
             }
             if (node.Field == ConditionField.All)
             {
-                return "All (alle bestanden)";
+                return Localization.Get("RuleEditor.Tree.AllFiles");
             }
-            return $"{node.Field} {node.Operator} \"{node.Value}\"" + (node.CaseSensitive ? " (case-sensitive)" : string.Empty);
+            return $"{node.Field} {node.Operator} \"{node.Value}\"" + (node.CaseSensitive ? " " + Localization.Get("RuleSummary.CaseSensitive") : string.Empty);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>

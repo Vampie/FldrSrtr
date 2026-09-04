@@ -27,7 +27,7 @@ namespace FldrSrtr
 
         private void BrowsePath_Click(object sender, RoutedEventArgs e)
         {
-            string path = ModernFolderPicker.PickFolder("Selecteer de map voor deze folder entry", PathTextBox.Text);
+            string path = ModernFolderPicker.PickFolder(Localization.Get("FolderSettings.PickFolder"), PathTextBox.Text);
             if (path != null)
             {
                 PathTextBox.Text = path;
@@ -75,7 +75,7 @@ namespace FldrSrtr
             string path = PathTextBox.Text.Trim();
             if (string.IsNullOrEmpty(path))
             {
-                MessageBox.Show(this, "Geef een map op.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("FolderSettings.PathRequired"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

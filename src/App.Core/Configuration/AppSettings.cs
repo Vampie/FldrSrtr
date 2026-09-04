@@ -48,5 +48,9 @@ namespace App.Core.Configuration
 
         /// <summary>See QuickActionSourceFolder.</summary>
         public string QuickActionDestination { get; set; } = string.Empty;
+
+        /// <summary>UI language — a code matching a file under Languages\ (see Localization).
+        /// Takes effect after a restart.</summary>
+        public string Language { get; set; } = "nl";
     }
 }

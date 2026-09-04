@@ -31,6 +31,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- UI text — also plain files next to the exe, same reasoning as IconSets: adding a
+         language is dropping in a new Languages\<code>.json, no rebuild needed. See
+         Localization/LocExtension. -->
+    <None Include="Languages\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\App.Core\App.Core.csproj" />
     <ProjectReference Include="..\App.Infrastructure\App.Infrastructure.csproj" />
   </ItemGroup>

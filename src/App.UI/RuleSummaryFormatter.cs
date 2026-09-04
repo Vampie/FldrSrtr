@@ -14,14 +14,14 @@ namespace FldrSrtr
             }
 
             var sb = new StringBuilder();
-            sb.AppendLine("Conditions:");
+            sb.AppendLine(Localization.Get("RuleSummary.Conditions"));
             DescribeNode(rule.RootCondition, 1, sb);
 
             sb.AppendLine();
-            sb.AppendLine("Actions (in volgorde):");
+            sb.AppendLine(Localization.Get("RuleSummary.ActionsInOrder"));
             if (rule.Actions == null || rule.Actions.Count == 0)
             {
-                sb.AppendLine("  (geen acties)");
+                sb.AppendLine("  " + Localization.Get("RuleSummary.NoActions"));
             }
             else
             {
@@ -42,7 +42,7 @@ namespace FldrSrtr
 
             if (node == null)
             {
-                sb.AppendLine($"{indent}(geen conditie)");
+                sb.AppendLine($"{indent}{Localization.Get("RuleSummary.NoCondition")}");
                 return;
             }
 
@@ -50,7 +50,7 @@ namespace FldrSrtr
             {
                 if (node.Children == null || node.Children.Count == 0)
                 {
-                    sb.AppendLine($"{indent}{node.GroupLogic} (leeg — matcht nooit)");
+                    sb.AppendLine($"{indent}{node.GroupLogic} {Localization.Get("RuleSummary.EmptyGroup")}");
                     return;
                 }
 
@@ -62,11 +62,11 @@ namespace FldrSrtr
             }
             else if (node.Field == ConditionField.All)
             {
-                sb.AppendLine($"{indent}All (alle bestanden — geen filter)");
+                sb.AppendLine($"{indent}{Localization.Get("RuleSummary.AllFiles")}");
             }
             else
             {
-                string caseSensitive = node.CaseSensitive ? " [case-sensitive]" : string.Empty;
+                string caseSensitive = node.CaseSensitive ? " " + Localization.Get("RuleSummary.CaseSensitive") : string.Empty;
                 sb.AppendLine($"{indent}{node.Field} {node.Operator} \"{node.Value}\"{caseSensitive}");
             }
         }
@@ -76,20 +76,20 @@ namespace FldrSrtr
             switch (action.Type)
             {
                 case ActionType.DeleteToRecycleBin:
-                    return "Delete to Recycle Bin";
+                    return Localization.Get("RuleSummary.Action.DeleteToRecycleBin");
                 case ActionType.Open:
-                    return "Open (standaardprogramma)";
+                    return Localization.Get("RuleSummary.Action.Open");
                 case ActionType.RemoveExtension:
-                    return "Remove extension";
+                    return Localization.Get("RuleSummary.Action.RemoveExtension");
                 case ActionType.ExecuteExternal:
                     string args = string.IsNullOrEmpty(action.Arguments) ? string.Empty : $" {action.Arguments}";
-                    return $"Execute {action.Destination}{args}";
+                    return Localization.Get("RuleSummary.Action.Execute", action.Destination, args);
                 case ActionType.AddExtension:
-                    return $"Add extension \"{action.Destination}\"";
+                    return Localization.Get("RuleSummary.Action.AddExtension", action.Destination);
                 case ActionType.DeleteTargetIfExists:
-                    return $"Delete target if exists: {action.Destination}";
+                    return Localization.Get("RuleSummary.Action.DeleteTargetIfExists", action.Destination);
                 default:
-                    return $"{action.Type} -> {action.Destination} (on conflict: {action.OnConflict})";
+                    return Localization.Get("RuleSummary.Action.Default", action.Type, action.Destination, action.OnConflict);
             }
         }
     }

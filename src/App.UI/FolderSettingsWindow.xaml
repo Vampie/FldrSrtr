@@ -1,7 +1,8 @@
 <Window x:Class="FldrSrtr.FolderSettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Folder settings" Height="480" Width="480"
+        xmlns:local="clr-namespace:FldrSrtr"
+        Title="{local:Loc FolderSettings.Title}" Height="480" Width="480"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -16,48 +17,48 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
             <TextBox x:Name="PathTextBox" Width="320" Margin="0,0,4,0" />
-            <Button Content="Bladeren..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowsePath_Click" />
+            <Button Content="{local:Loc Common.Browse}" Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowsePath_Click" />
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <CheckBox x:Name="RecursiveCheckBox" Content="Recursief (subfolders meenemen)" VerticalAlignment="Center" />
+            <CheckBox x:Name="RecursiveCheckBox" Content="{local:Loc FolderSettings.Recursive}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
-            <TextBlock Text="Max. diepte:" VerticalAlignment="Center" Width="90" />
+            <TextBlock Text="{local:Loc FolderSettings.MaxDepth}" VerticalAlignment="Center" Width="90" />
             <TextBox x:Name="MaxDepthTextBox" Width="60" />
         </StackPanel>
 
-        <TextBlock Grid.Row="3" VerticalAlignment="Top" Text="Uitgesloten bestandspatronen (wildcard, bv. *.tmp):" FontWeight="Bold" Margin="0,0,0,4" />
+        <TextBlock Grid.Row="3" VerticalAlignment="Top" Text="{local:Loc FolderSettings.ExcludedFilePatterns}" FontWeight="Bold" Margin="0,0,0,4" />
         <DockPanel Grid.Row="3" Margin="0,20,0,0">
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
                 <TextBox x:Name="NewFilePatternTextBox" Width="200" Margin="0,0,4,0" />
-                <Button Content="Toevoegen" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddFilePattern_Click" />
+                <Button Content="{local:Loc Common.Add}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddFilePattern_Click" />
             </StackPanel>
             <ListBox x:Name="FilePatternsListBox">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding}" Width="200" />
-                            <Button Content="Remove" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveFilePattern_Click" />
+                            <Button Content="{local:Loc Common.Remove}" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveFilePattern_Click" />
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
         </DockPanel>
 
-        <TextBlock Grid.Row="5" VerticalAlignment="Top" Text="Uitgesloten submapnamen (bv. node_modules):" FontWeight="Bold" Margin="0,12,0,4" />
+        <TextBlock Grid.Row="5" VerticalAlignment="Top" Text="{local:Loc FolderSettings.ExcludedSubfolders}" FontWeight="Bold" Margin="0,12,0,4" />
         <DockPanel Grid.Row="5" Margin="0,32,0,0">
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
                 <TextBox x:Name="NewSubfolderTextBox" Width="200" Margin="0,0,4,0" />
-                <Button Content="Toevoegen" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddSubfolder_Click" />
+                <Button Content="{local:Loc Common.Add}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddSubfolder_Click" />
             </StackPanel>
             <ListBox x:Name="SubfoldersListBox">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding}" Width="200" />
-                            <Button Content="Remove" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveSubfolder_Click" />
+                            <Button Content="{local:Loc Common.Remove}" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveSubfolder_Click" />
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -65,8 +66,8 @@
         </DockPanel>
 
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancel" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
-            <Button Content="Save" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Width="90" Click="Save_Click" IsDefault="True" />
+            <Button Content="{local:Loc Common.Cancel}" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
+            <Button Content="{local:Loc Common.Save}" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Width="90" Click="Save_Click" IsDefault="True" />
         </StackPanel>
     </Grid>
 </Window>

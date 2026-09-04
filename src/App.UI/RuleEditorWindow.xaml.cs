@@ -26,18 +26,18 @@ namespace FldrSrtr
 
         private static readonly Dictionary<ActionType, string> ActionHelp = new Dictionary<ActionType, string>
         {
-            [ActionType.Move] = "Verplaatst het bestand naar Destination. Een map die nog niet bestaat wordt aangemaakt.",
-            [ActionType.Copy] = "Kopieert het bestand naar Destination. Het origineel blijft staan.",
-            [ActionType.Rename] = "Hernoemt het bestand. Destination is de nieuwe bestandsnaam (geen pad), bv. {FileName}_archief.{Extension}.",
-            [ActionType.DeleteToRecycleBin] = "Verplaatst het bestand naar de Prullenbak. Geen Destination nodig.",
-            [ActionType.Open] = "Opent het bestand met het standaardprogramma van Windows. Geen Destination nodig.",
-            [ActionType.OpenWith] = "Opent het bestand met het programma op het pad in Destination (bv. C:\\Apps\\Reader.exe).",
-            [ActionType.ExecuteExternal] = "Start het programma/script in Destination. Arguments zijn de commandoregel-parameters die worden meegegeven, bv. \"{FullPath}\" om het bestandspad door te geven.",
-            [ActionType.CreateFolder] = "Maakt de map in Destination aan als die nog niet bestaat (bv. om alvast een archiefmap klaar te zetten).",
-            [ActionType.AddExtension] = "Voegt een extensie toe aan de bestandsnaam. Destination is enkel de extensie (zonder punt), bv. 'bak' maakt van 'file.pdf' -> 'file.pdf.bak'.",
-            [ActionType.RemoveExtension] = "Verwijdert de huidige extensie, bv. 'file.pdf' -> 'file'. Geen Destination nodig.",
-            [ActionType.Zip] = "Voegt het bestand toe aan het zip-archief in Destination (wordt aangemaakt als het nog niet bestaat).",
-            [ActionType.DeleteTargetIfExists] = "Verplaatst het bestand op Destination naar de Prullenbak, maar alleen als het bestaat — anders gebeurt er niets. Raakt niet aan het bestand dat deze regel verwerkt. Handig vlak vóór een Move/Copy naar diezelfde Destination."
+            [ActionType.Move] = Localization.Get("ActionHelp.Move"),
+            [ActionType.Copy] = Localization.Get("ActionHelp.Copy"),
+            [ActionType.Rename] = Localization.Get("ActionHelp.Rename"),
+            [ActionType.DeleteToRecycleBin] = Localization.Get("ActionHelp.DeleteToRecycleBin"),
+            [ActionType.Open] = Localization.Get("ActionHelp.Open"),
+            [ActionType.OpenWith] = Localization.Get("ActionHelp.OpenWith"),
+            [ActionType.ExecuteExternal] = Localization.Get("ActionHelp.ExecuteExternal"),
+            [ActionType.CreateFolder] = Localization.Get("ActionHelp.CreateFolder"),
+            [ActionType.AddExtension] = Localization.Get("ActionHelp.AddExtension"),
+            [ActionType.RemoveExtension] = Localization.Get("ActionHelp.RemoveExtension"),
+            [ActionType.Zip] = Localization.Get("ActionHelp.Zip"),
+            [ActionType.DeleteTargetIfExists] = Localization.Get("ActionHelp.DeleteTargetIfExists")
         };
 
         private readonly Rule _rule;
@@ -366,10 +366,10 @@ namespace FldrSrtr
             ArgumentsPanel.Visibility = needsArguments ? Visibility.Visible : Visibility.Collapsed;
             OnConflictPanel.Visibility = needsConflict ? Visibility.Visible : Visibility.Collapsed;
 
-            DestinationLabel.Text = type == ActionType.Rename ? "New name:" :
-                                     type == ActionType.AddExtension ? "Extension:" :
-                                     type == ActionType.OpenWith || type == ActionType.ExecuteExternal ? "Program:" :
-                                     "Destination:";
+            DestinationLabel.Text = type == ActionType.Rename ? Localization.Get("RuleEditor.NewName") :
+                                     type == ActionType.AddExtension ? Localization.Get("RuleEditor.ExtensionLabel") :
+                                     type == ActionType.OpenWith || type == ActionType.ExecuteExternal ? Localization.Get("RuleEditor.Program") :
+                                     Localization.Get("RuleEditor.Destination");
 
             ActionHelpText.Text = ActionHelp.TryGetValue(type, out string help) ? help : string.Empty;
         }
@@ -451,7 +451,7 @@ namespace FldrSrtr
         {
             if (string.IsNullOrWhiteSpace(NameTextBox.Text))
             {
-                MessageBox.Show(this, "Geef de regel een naam.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("RuleEditor.NameRequired"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -467,8 +467,7 @@ namespace FldrSrtr
             if (issues.Count > 0)
             {
                 MessageBoxResult proceed = MessageBox.Show(this,
-                    "Er zijn problemen gevonden met deze regel:\n\n- " + string.Join("\n- ", issues) +
-                    "\n\nToch opslaan?",
+                    Localization.Get("RuleEditor.ValidationIssues", "- " + string.Join("\n- ", issues)),
                     "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (proceed != MessageBoxResult.Yes)
                 {

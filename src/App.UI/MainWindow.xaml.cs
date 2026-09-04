@@ -109,7 +109,7 @@ namespace FldrSrtr
 
         private void BrowseQuickActionSource_Click(object sender, RoutedEventArgs e)
         {
-            string path = ModernFolderPicker.PickFolder("Selecteer de bronmap", QuickActionSourceTextBox.Text);
+            string path = ModernFolderPicker.PickFolder(Localization.Get("Dashboard.QuickAction.PickSourceFolder"), QuickActionSourceTextBox.Text);
             if (path != null)
             {
                 QuickActionSourceTextBox.Text = path;
@@ -119,7 +119,7 @@ namespace FldrSrtr
 
         private void BrowseQuickActionDestination_Click(object sender, RoutedEventArgs e)
         {
-            string path = ModernFolderPicker.PickFolder("Selecteer de destination", QuickActionDestinationTextBox.Text);
+            string path = ModernFolderPicker.PickFolder(Localization.Get("Dashboard.QuickAction.PickDestination"), QuickActionDestinationTextBox.Text);
             if (path != null)
             {
                 QuickActionDestinationTextBox.Text = path;
@@ -151,17 +151,17 @@ namespace FldrSrtr
 
             if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(destination))
             {
-                MessageBox.Show(this, "Geef zowel een bronmap als een destination op.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Dashboard.QuickAction.MissingPaths"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             if (!_fileSystem.Directory.Exists(source))
             {
-                MessageBox.Show(this, "De bronmap bestaat niet.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Dashboard.QuickAction.SourceMissing"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var sourceFolder = new WatchedFolder { Path = source, Recursive = false };
-            var rule = new Rule { Name = "Snelle actie", RootCondition = ConditionNode.NewGroup() };
+            var rule = new Rule { Name = Localization.Get("Dashboard.QuickAction.RuleName"), RootCondition = ConditionNode.NewGroup() };
             rule.RootCondition.Children.Add(ConditionNode.NewLeaf(ConditionField.All, ConditionOperator.Equals, null));
             rule.Actions.Add(new RuleAction { Type = actionType, Destination = destination, OnConflict = ConflictResolution.Rename });
 
@@ -175,16 +175,15 @@ namespace FldrSrtr
                 if (matchCount > _config.Settings.MaxFilesPerRun)
                 {
                     MessageBox.Show(this,
-                        $"De bronmap bevat {matchCount} bestand(en) — dat is meer dan de ingestelde limiet van {_config.Settings.MaxFilesPerRun}.\n" +
-                        "Verhoog de limiet in Settings als dit verwacht is.",
+                        Localization.Get("Msg.TooManyFilesInFolder", matchCount, _config.Settings.MaxFilesPerRun),
                         "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                string verb = actionType == ActionType.Move ? "Verplaats" : "Kopieer";
+                string verb = actionType == ActionType.Move ? Localization.Get("Common.Move") : Localization.Get("Common.Copy");
                 string question =
-                    $"{verb} {matchCount} bestand(en) van\n{source}\nnaar\n{destination}\n\n" +
-                    (matchCount > _config.Settings.ConfirmationThreshold ? "Dit is best veel bestanden — doorgaan?" : "Doorgaan?");
+                    Localization.Get("Dashboard.QuickAction.ConfirmRun", verb, matchCount, source, destination) + "\n\n" +
+                    (matchCount > _config.Settings.ConfirmationThreshold ? Localization.Get("Msg.ThatsAlotOfFiles") : Localization.Get("Common.Continue"));
 
                 if (MessageBox.Show(this, question, "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 {
@@ -248,8 +247,8 @@ namespace FldrSrtr
             }
 
             SummaryText.Text = dryRun
-                ? $"Snelle actie — {results.Count} bestand(en) zouden verwerkt worden ({skipped} overgeslagen)."
-                : $"Snelle actie — {results.Count} matched, {success} success, {skipped} skipped, {failed} failed.";
+                ? Localization.Get("Dashboard.QuickAction.SummaryDryRun", results.Count, skipped)
+                : Localization.Get("Dashboard.QuickAction.SummaryRun", results.Count, success, skipped, failed);
 
             if (!dryRun)
             {
@@ -266,7 +265,7 @@ namespace FldrSrtr
         {
             WatchedFolder folder = SelectedFolder;
             RulesList.ItemsSource = folder?.Rules;
-            RulesHeaderText.Text = folder != null ? $"Rules for: {folder.Path}" : "Selecteer een folder";
+            RulesHeaderText.Text = folder != null ? Localization.Get("Folders.RulesFor", folder.Path) : Localization.Get("Folders.SelectAFolder");
             _previewRows.Clear();
             SummaryText.Text = string.Empty;
             RefreshRulePreview();
@@ -282,7 +281,7 @@ namespace FldrSrtr
 
         private void AddFolder_Click(object sender, RoutedEventArgs e)
         {
-            string path = ModernFolderPicker.PickFolder("Selecteer een map om te volgen");
+            string path = ModernFolderPicker.PickFolder(Localization.Get("Folders.PickFolderToWatch"));
             if (path == null)
             {
                 return;
@@ -300,7 +299,7 @@ namespace FldrSrtr
                 return;
             }
 
-            MessageBoxResult confirm = MessageBox.Show(this, $"Folder '{folder.Path}' verwijderen uit FldrSrtr?\n(De map zelf blijft bestaan.)",
+            MessageBoxResult confirm = MessageBox.Show(this, Localization.Get("Folders.ConfirmRemove", folder.Path),
                 "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm != MessageBoxResult.Yes)
             {
@@ -331,7 +330,7 @@ namespace FldrSrtr
             WatchedFolder folder = SelectedFolder;
             if (folder == null || !_fileSystem.Directory.Exists(folder.Path))
             {
-                MessageBox.Show(this, "Deze map bestaat niet (meer).", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Folders.NoLongerExists"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -347,8 +346,8 @@ namespace FldrSrtr
             }
 
             var files = _scanner.Scan(folder);
-            MessageBox.Show(this, $"{files.Count} bestand(en) gevonden in {folder.Path}" +
-                (folder.Recursive ? " (recursief)." : "."), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+            string suffix = folder.Recursive ? Localization.Get("Folders.ScanResult.Recursive") : Localization.Get("Folders.ScanResult.NotRecursive");
+            MessageBox.Show(this, Localization.Get("Folders.ScanResult", files.Count, folder.Path) + suffix, "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void FolderSettings_Click(object sender, RoutedEventArgs e)
@@ -371,11 +370,11 @@ namespace FldrSrtr
             WatchedFolder folder = SelectedFolder;
             if (folder == null)
             {
-                MessageBox.Show(this, "Selecteer eerst een folder.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Folders.SelectFolderFirst"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json", FileName = "folder-export.json" })
+            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = Localization.Get("Common.JsonFilter"), FileName = "folder-export.json" })
             {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -386,7 +385,7 @@ namespace FldrSrtr
 
         private void ImportFolder_Click(object sender, RoutedEventArgs e)
         {
-            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = "JSON (*.json)|*.json" })
+            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = Localization.Get("Common.JsonFilter") })
             {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -398,7 +397,7 @@ namespace FldrSrtr
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(this, $"Import mislukt: {ex.Message}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(this, Localization.Get("Msg.ImportFailed", ex.Message), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
@@ -421,7 +420,7 @@ namespace FldrSrtr
             Rule rule = SelectedRule;
             RulePreviewText.Text = rule != null
                 ? RuleSummaryFormatter.Describe(rule)
-                : "Selecteer een regel om te zien wat ze doet.";
+                : Localization.Get("Rules.SelectARule");
         }
 
         private void AddRule_Click(object sender, RoutedEventArgs e)
@@ -429,7 +428,7 @@ namespace FldrSrtr
             WatchedFolder folder = SelectedFolder;
             if (folder == null)
             {
-                MessageBox.Show(this, "Selecteer eerst een folder.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Folders.SelectFolderFirst"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -495,11 +494,11 @@ namespace FldrSrtr
             Rule rule = SelectedRule;
             if (rule == null)
             {
-                MessageBox.Show(this, "Selecteer eerst een regel.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Rules.SelectRuleFirst"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json", FileName = "rule-export.json" })
+            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = Localization.Get("Common.JsonFilter"), FileName = "rule-export.json" })
             {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -513,11 +512,11 @@ namespace FldrSrtr
             WatchedFolder folder = SelectedFolder;
             if (folder == null)
             {
-                MessageBox.Show(this, "Selecteer eerst een folder.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Folders.SelectFolderFirst"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = "JSON (*.json)|*.json" })
+            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = Localization.Get("Common.JsonFilter") })
             {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -529,7 +528,7 @@ namespace FldrSrtr
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(this, $"Import mislukt: {ex.Message}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(this, Localization.Get("Msg.ImportFailed", ex.Message), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
@@ -545,7 +544,7 @@ namespace FldrSrtr
             Rule rule = SelectedRule;
             if (folder == null || rule == null)
             {
-                MessageBox.Show(this, "Selecteer een folder en een regel.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Rules.SelectFolderAndRule"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -556,16 +555,15 @@ namespace FldrSrtr
             if (matchCount > _config.Settings.MaxFilesPerRun)
             {
                 MessageBox.Show(this,
-                    $"Deze regel matcht {matchCount} bestanden — dat is meer dan de ingestelde limiet van {_config.Settings.MaxFilesPerRun}.\n" +
-                    "Verhoog de limiet in Settings als dit verwacht is, of verfijn de regel.",
+                    Localization.Get("Msg.TooManyFilesForRule", matchCount, _config.Settings.MaxFilesPerRun),
                     "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             string question =
-                $"Regel '{rule.Name}' uitvoeren op:\n{folder.Path}\n\n" +
-                $"{matchCount} bestand(en) komen in aanmerking. Dit wijzigt bestanden op schijf.\n\n" +
-                (matchCount > _config.Settings.ConfirmationThreshold ? "Dit is best veel bestanden — doorgaan?" : "Doorgaan?");
+                Localization.Get("Rules.ConfirmRun", rule.Name, folder.Path) + "\n\n" +
+                Localization.Get("Rules.ConfirmRun.MatchCount", matchCount) + "\n\n" +
+                (matchCount > _config.Settings.ConfirmationThreshold ? Localization.Get("Msg.ThatsAlotOfFiles") : Localization.Get("Common.Continue"));
 
             MessageBoxResult confirm = MessageBox.Show(this, question, "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm == MessageBoxResult.Yes)
@@ -580,7 +578,7 @@ namespace FldrSrtr
             Rule rule = SelectedRule;
             if (folder == null || rule == null)
             {
-                MessageBox.Show(this, "Selecteer een folder en een regel.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Rules.SelectFolderAndRule"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -630,8 +628,8 @@ namespace FldrSrtr
             }
 
             SummaryText.Text = dryRun
-                ? $"{executionResults.Count} actie(s) zouden worden uitgevoerd ({skipped} zouden worden overgeslagen)."
-                : $"{executionResults.Count} matched, {success} success, {skipped} skipped, {failed} failed.";
+                ? Localization.Get("Rules.SummaryDryRun", executionResults.Count, skipped)
+                : Localization.Get("Rules.SummaryRun", executionResults.Count, success, skipped, failed);
 
             if (!dryRun)
             {
@@ -646,8 +644,8 @@ namespace FldrSrtr
             if (ResultsGrid.SelectedItem is PreviewRow row)
             {
                 MessageBox.Show(this,
-                    $"Bestand: {row.FileName}\nActie: {row.Action}\nStatus: {row.Status}\n\nVan:\n{row.FromPath}\n\nNaar:\n{row.ToPath}\n\nMelding:\n{row.Message}",
-                    "FldrSrtr — details", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Localization.Get("Rules.ResultDetails", row.FileName, row.Action, row.Status, row.FromPath, row.ToPath, row.Message),
+                    "FldrSrtr — " + Localization.Get("Common.Details"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -660,9 +658,9 @@ namespace FldrSrtr
             if (ActivityGrid.SelectedItem is ActivityLogEntry entry)
             {
                 MessageBox.Show(this,
-                    $"Tijd (UTC): {entry.TimestampUtc}\nFolder: {entry.FolderPath}\nRegel: {entry.RuleName}\nBestand: {entry.FileName}\n" +
-                    $"Actie: {entry.Action}\nStatus: {entry.Status}\n\nVan:\n{entry.OriginalPath}\n\nNaar:\n{entry.DestinationPath}\n\nMelding:\n{entry.Message}",
-                    "FldrSrtr — details", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Localization.Get("Activity.EntryDetails", entry.TimestampUtc, entry.FolderPath, entry.RuleName, entry.FileName,
+                        entry.Action, entry.Status, entry.OriginalPath, entry.DestinationPath, entry.Message),
+                    "FldrSrtr — " + Localization.Get("Common.Details"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -670,17 +668,18 @@ namespace FldrSrtr
         {
             _allActivityEntries = _activityLogger.ReadAll().OrderByDescending(entry => entry.TimestampUtc).ToList();
 
+            string all = Localization.Get("Common.AllFilter");
             string previousStatus = ActivityStatusFilter.SelectedItem as string;
             string previousRule = ActivityRuleFilter.SelectedItem as string;
             string previousFolder = ActivityFolderFilter.SelectedItem as string;
 
-            ActivityStatusFilter.ItemsSource = new[] { "(alle)" }.Concat(_allActivityEntries.Select(e => e.Status).Distinct().OrderBy(s => s)).ToList();
-            ActivityRuleFilter.ItemsSource = new[] { "(alle)" }.Concat(_allActivityEntries.Select(e => e.RuleName).Where(r => r != null).Distinct().OrderBy(r => r)).ToList();
-            ActivityFolderFilter.ItemsSource = new[] { "(alle)" }.Concat(_allActivityEntries.Select(e => e.FolderPath).Where(f => f != null).Distinct().OrderBy(f => f)).ToList();
+            ActivityStatusFilter.ItemsSource = new[] { all }.Concat(_allActivityEntries.Select(e => e.Status).Distinct().OrderBy(s => s)).ToList();
+            ActivityRuleFilter.ItemsSource = new[] { all }.Concat(_allActivityEntries.Select(e => e.RuleName).Where(r => r != null).Distinct().OrderBy(r => r)).ToList();
+            ActivityFolderFilter.ItemsSource = new[] { all }.Concat(_allActivityEntries.Select(e => e.FolderPath).Where(f => f != null).Distinct().OrderBy(f => f)).ToList();
 
-            ActivityStatusFilter.SelectedItem = previousStatus ?? "(alle)";
-            ActivityRuleFilter.SelectedItem = previousRule ?? "(alle)";
-            ActivityFolderFilter.SelectedItem = previousFolder ?? "(alle)";
+            ActivityStatusFilter.SelectedItem = previousStatus ?? all;
+            ActivityRuleFilter.SelectedItem = previousRule ?? all;
+            ActivityFolderFilter.SelectedItem = previousFolder ?? all;
 
             ApplyActivityFilter();
             RefreshDashboard();
@@ -695,6 +694,7 @@ namespace FldrSrtr
                 return;
             }
 
+            string all = Localization.Get("Common.AllFilter");
             IEnumerable<ActivityLogEntry> filtered = _allActivityEntries;
 
             string search = ActivitySearchBox?.Text?.Trim();
@@ -706,15 +706,15 @@ namespace FldrSrtr
                     (e.FolderPath?.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0));
             }
 
-            if (ActivityStatusFilter.SelectedItem is string status && status != "(alle)")
+            if (ActivityStatusFilter.SelectedItem is string status && status != all)
             {
                 filtered = filtered.Where(e => e.Status == status);
             }
-            if (ActivityRuleFilter.SelectedItem is string ruleName && ruleName != "(alle)")
+            if (ActivityRuleFilter.SelectedItem is string ruleName && ruleName != all)
             {
                 filtered = filtered.Where(e => e.RuleName == ruleName);
             }
-            if (ActivityFolderFilter.SelectedItem is string folderPath && folderPath != "(alle)")
+            if (ActivityFolderFilter.SelectedItem is string folderPath && folderPath != all)
             {
                 filtered = filtered.Where(e => e.FolderPath == folderPath);
             }
@@ -733,12 +733,12 @@ namespace FldrSrtr
 
             if (target == null)
             {
-                MessageBox.Show(this, "Geen ongedaan te maken actie gevonden.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(this, Localization.Get("Activity.NoUndoableAction"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             MessageBoxResult confirm = MessageBox.Show(this,
-                $"Laatste actie ongedaan maken?\n\n{target.Action}: {target.OriginalPath} -> {target.DestinationPath}",
+                Localization.Get("Activity.ConfirmUndo", target.Action, target.OriginalPath, target.DestinationPath),
                 "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm != MessageBoxResult.Yes)
             {
@@ -760,7 +760,7 @@ namespace FldrSrtr
                 FileName = target.FileName,
                 Action = "Undo",
                 Status = result.Success ? "SUCCESS" : "ERROR",
-                Message = result.Success ? $"Undo of {target.Action}" : result.ErrorMessage,
+                Message = result.Success ? Localization.Get("Activity.UndoOf", target.Action) : result.ErrorMessage,
                 OriginalPath = target.DestinationPath,
                 DestinationPath = target.OriginalPath,
                 UndoOfId = target.Id
@@ -770,7 +770,7 @@ namespace FldrSrtr
 
             if (!result.Success)
             {
-                MessageBox.Show(this, $"Ongedaan maken mislukt: {result.ErrorMessage}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, Localization.Get("Msg.UndoFailed", result.ErrorMessage), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -834,6 +834,13 @@ namespace FldrSrtr
                 IconSetComboBox.SelectedIndex = 0;
             }
 
+            LanguageComboBox.ItemsSource = Localization.GetAvailableLanguages();
+            LanguageComboBox.SelectedItem = _config.Settings.Language;
+            if (LanguageComboBox.SelectedItem == null)
+            {
+                LanguageComboBox.SelectedIndex = 0;
+            }
+
             BackupOnSettingsChangeCheckBox.IsChecked = _config.Settings.BackupOnSettingsChange;
         }
 
@@ -841,21 +848,25 @@ namespace FldrSrtr
         {
             if (!int.TryParse(ConfirmationThresholdTextBox.Text, out int threshold) || threshold < 0)
             {
-                MessageBox.Show(this, "Confirmation threshold moet een positief getal zijn.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Settings.ConfirmationThreshold.Invalid"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             if (!int.TryParse(MaxFilesPerRunTextBox.Text, out int maxFiles) || maxFiles < 1)
             {
-                MessageBox.Show(this, "Max files per run moet minstens 1 zijn.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, Localization.Get("Settings.MaxFilesPerRun.Invalid"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             string newIconSet = IconSetComboBox.SelectedItem as string ?? "Default";
             bool iconSetChanged = newIconSet != _config.Settings.IconSet;
 
+            string newLanguage = LanguageComboBox.SelectedItem as string ?? Localization.DefaultLanguage;
+            bool languageChanged = newLanguage != _config.Settings.Language;
+
             _config.Settings.ConfirmationThreshold = threshold;
             _config.Settings.MaxFilesPerRun = maxFiles;
             _config.Settings.IconSet = newIconSet;
+            _config.Settings.Language = newLanguage;
             _config.Settings.BackupOnSettingsChange = BackupOnSettingsChangeCheckBox.IsChecked == true;
             SaveSettingsConfig();
 
@@ -864,13 +875,19 @@ namespace FldrSrtr
                 IconSetProvider.ApplySetting(newIconSet);
                 if (!TryRefreshIconsLive())
                 {
-                    MessageBox.Show(this, "Instellingen opgeslagen. Herstart FldrSrtr om de nieuwe icoonset overal toe te passen.",
+                    MessageBox.Show(this, Localization.Get("Settings.IconSet.RestartNeeded"),
                         "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
             }
 
-            MessageBox.Show(this, "Instellingen opgeslagen.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (languageChanged)
+            {
+                MessageBox.Show(this, Localization.Get("Settings.Language.RestartNeeded"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            MessageBox.Show(this, Localization.Get("Settings.Saved"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void IconOverrides_Click(object sender, RoutedEventArgs e)
@@ -895,7 +912,7 @@ namespace FldrSrtr
 
             if (!TryRefreshIconsLive())
             {
-                MessageBox.Show(this, "Instellingen opgeslagen. Herstart FldrSrtr om alle eigen iconen overal toe te passen.",
+                MessageBox.Show(this, Localization.Get("Settings.CustomIcons.RestartNeeded"),
                     "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
@@ -940,7 +957,7 @@ namespace FldrSrtr
 
         private void BrowseProtectedFolder_Click(object sender, RoutedEventArgs e)
         {
-            string path = ModernFolderPicker.PickFolder("Selecteer een beschermde map");
+            string path = ModernFolderPicker.PickFolder(Localization.Get("Settings.PickProtectedFolder"));
             if (path != null)
             {
                 NewProtectedFolderTextBox.Text = path;
@@ -991,7 +1008,7 @@ namespace FldrSrtr
 
         private void ExportConfig_Click(object sender, RoutedEventArgs e)
         {
-            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json", FileName = "fldrsrtr-config-export.json" })
+            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = Localization.Get("Common.JsonFilter"), FileName = "fldrsrtr-config-export.json" })
             {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -1003,14 +1020,14 @@ namespace FldrSrtr
         private void ImportConfig_Click(object sender, RoutedEventArgs e)
         {
             MessageBoxResult confirm = MessageBox.Show(this,
-                "Dit vervangt de volledige huidige configuratie (folders, regels en instellingen). Doorgaan?",
+                Localization.Get("Settings.ConfirmImportConfig"),
                 "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirm != MessageBoxResult.Yes)
             {
                 return;
             }
 
-            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = "JSON (*.json)|*.json" })
+            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = Localization.Get("Common.JsonFilter") })
             {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -1024,7 +1041,7 @@ namespace FldrSrtr
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(this, $"Import mislukt: {ex.Message}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(this, Localization.Get("Msg.ImportFailed", ex.Message), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }

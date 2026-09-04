@@ -25,6 +25,7 @@ namespace FldrSrtr
                 var config = new ConfigService().LoadOrCreateDefault();
                 IconSetProvider.ApplySetting(config.Settings.IconSet);
                 IconSetProvider.ApplyOverrides(config.Settings.IconOverrides);
+                Localization.ApplyLanguage(config.Settings.Language);
             }
             catch (System.InvalidOperationException ex)
             {

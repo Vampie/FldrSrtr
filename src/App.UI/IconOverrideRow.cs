@@ -45,7 +45,7 @@ namespace FldrSrtr
             }
         }
 
-        public string StatusText => string.IsNullOrEmpty(OverridePath) ? "(standaard)" : OverridePath;
+        public string StatusText => string.IsNullOrEmpty(OverridePath) ? Localization.Get("IconOverrides.Default") : OverridePath;
 
         public event PropertyChangedEventHandler PropertyChanged;
 

@@ -1,95 +1,96 @@
 <Window x:Class="FldrSrtr.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:FldrSrtr"
         Title="FldrSrtr" Height="740" Width="1150"
         Loaded="Window_Loaded">
     <TabControl x:Name="MainTabControl" Margin="8">
-        <TabItem Header="Dashboard">
+        <TabItem Header="{local:Loc MainWindow.Tab.Dashboard}">
             <StackPanel Margin="16">
                 <Border BorderBrush="Gray" BorderThickness="1" Padding="12" Margin="0,0,0,16">
                     <StackPanel>
-                        <TextBlock Text="Snelle actie" FontWeight="Bold" Margin="0,0,0,8" />
+                        <TextBlock Text="{local:Loc Dashboard.QuickAction.Title}" FontWeight="Bold" Margin="0,0,0,8" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="Bronmap:" Width="90" VerticalAlignment="Center" />
+                            <TextBlock Text="{local:Loc Dashboard.QuickAction.SourceFolder}" Width="90" VerticalAlignment="Center" />
                             <TextBox x:Name="QuickActionSourceTextBox" Width="420" Margin="0,0,4,0" />
-                            <Button Content="Bladeren..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowseQuickActionSource_Click" />
+                            <Button Content="{local:Loc Common.Browse}" Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowseQuickActionSource_Click" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="Destination:" Width="90" VerticalAlignment="Center" />
+                            <TextBlock Text="{local:Loc Dashboard.QuickAction.Destination}" Width="90" VerticalAlignment="Center" />
                             <TextBox x:Name="QuickActionDestinationTextBox" Width="420" Margin="0,0,4,0" />
-                            <Button Content="Bladeren..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowseQuickActionDestination_Click" />
+                            <Button Content="{local:Loc Common.Browse}" Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowseQuickActionDestination_Click" />
                         </StackPanel>
-                        <Button Content="Insert variable ▾" HorizontalAlignment="Left" Tag="Icons/icon-insert-variable.png" Style="{StaticResource IconButton}"
+                        <Button Content="{local:Loc Common.InsertVariable}" HorizontalAlignment="Left" Tag="Icons/icon-insert-variable.png" Style="{StaticResource IconButton}"
                                 Margin="90,0,0,8" Click="InsertQuickActionDestinationVariable_Click" />
                         <StackPanel Orientation="Horizontal">
-                            <Button Content="Test (dry run)" Tag="Icons/icon-inspect.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="QuickActionDryRun_Click" />
-                            <Button Content="Verplaats" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="QuickActionMove_Click" />
-                            <Button Content="Kopieer" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="QuickActionCopy_Click" />
+                            <Button Content="{local:Loc Common.TestDryRun}" Tag="Icons/icon-inspect.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="QuickActionDryRun_Click" />
+                            <Button Content="{local:Loc Common.Move}" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="QuickActionMove_Click" />
+                            <Button Content="{local:Loc Common.Copy}" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="QuickActionCopy_Click" />
                         </StackPanel>
                         <TextBlock Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
-                                   Text="Verplaatst of kopieert alle bestanden uit de bronmap (niet recursief) naar Destination — zonder dat je hiervoor een folder/regel moet aanmaken. Destination mag variabelen bevatten (bv. ..\{ModifiedYear}_{ModifiedMonth}\{OriginalName}.{OriginalExtension}) en wordt voor elk bestand apart herberekend. Gebruik hiervoor Modified in plaats van Created: Windows zet de aanmaakdatum vaak terug op 'nu' zodra een bestand gekopieerd/gedownload wordt, waardoor alles toch in dezelfde map terechtkomt. Bronmap en Destination worden bewaard en staan klaar bij het openen van FldrSrtr." />
+                                   Text="{local:Loc Dashboard.QuickAction.Help}" />
                     </StackPanel>
                 </Border>
 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                    <TextBlock Text="Periode:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBlock Text="{local:Loc Dashboard.Period}" VerticalAlignment="Center" Margin="0,0,8,0" />
                     <ComboBox x:Name="PeriodComboBox" Width="150" SelectionChanged="PeriodComboBox_SelectionChanged" />
                 </StackPanel>
 
                 <UniformGrid Columns="4" Rows="2">
                     <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Bestanden verwerkt" FontWeight="Bold" />
+                            <TextBlock Text="{local:Loc Dashboard.Stat.FilesProcessed}" FontWeight="Bold" />
                             <TextBlock x:Name="StatFilesProcessed" FontSize="22" />
                         </StackPanel>
                     </Border>
                     <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Verplaatst" FontWeight="Bold" />
+                            <TextBlock Text="{local:Loc Dashboard.Stat.Moved}" FontWeight="Bold" />
                             <TextBlock x:Name="StatMoved" FontSize="22" />
                         </StackPanel>
                     </Border>
                     <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Gekopieerd" FontWeight="Bold" />
+                            <TextBlock Text="{local:Loc Dashboard.Stat.Copied}" FontWeight="Bold" />
                             <TextBlock x:Name="StatCopied" FontSize="22" />
                         </StackPanel>
                     </Border>
                     <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Hernoemd" FontWeight="Bold" />
+                            <TextBlock Text="{local:Loc Dashboard.Stat.Renamed}" FontWeight="Bold" />
                             <TextBlock x:Name="StatRenamed" FontSize="22" />
                         </StackPanel>
                     </Border>
                     <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Verwijderd" FontWeight="Bold" />
+                            <TextBlock Text="{local:Loc Dashboard.Stat.Deleted}" FontWeight="Bold" />
                             <TextBlock x:Name="StatDeleted" FontSize="22" />
                         </StackPanel>
                     </Border>
                     <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Fouten" FontWeight="Bold" />
+                            <TextBlock Text="{local:Loc Dashboard.Stat.Errors}" FontWeight="Bold" />
                             <TextBlock x:Name="StatErrors" FontSize="22" />
                         </StackPanel>
                     </Border>
                     <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Data verplaatst" FontWeight="Bold" />
+                            <TextBlock Text="{local:Loc Dashboard.Stat.DataMoved}" FontWeight="Bold" />
                             <TextBlock x:Name="StatDataMoved" FontSize="22" />
                         </StackPanel>
                     </Border>
                 </UniformGrid>
 
-                <TextBlock Text="Acties per regel:" FontWeight="Bold" Margin="0,20,0,4" />
+                <TextBlock Text="{local:Loc Dashboard.ActionsPerRule}" FontWeight="Bold" Margin="0,20,0,4" />
                 <ItemsControl x:Name="StatsPerRuleList" />
 
-                <TextBlock Text="Acties per folder:" FontWeight="Bold" Margin="0,12,0,4" />
+                <TextBlock Text="{local:Loc Dashboard.ActionsPerFolder}" FontWeight="Bold" Margin="0,12,0,4" />
                 <ItemsControl x:Name="StatsPerFolderList" />
             </StackPanel>
         </TabItem>
 
-        <TabItem x:Name="FoldersTab" Header="Folders">
+        <TabItem x:Name="FoldersTab" Header="{local:Loc MainWindow.Tab.Folders}">
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="280" />
@@ -99,17 +100,17 @@
                 <!-- Folders -->
                 <DockPanel Grid.Column="0" Margin="0,0,8,0">
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Margin="0,8,0,0">
-                        <Button Content="Add folder" Tag="Icons/icon-add-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="AddFolder_Click" />
-                        <Button Content="Remove folder" Tag="Icons/icon-remove-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="RemoveFolder_Click" />
-                        <Button Content="Duplicate folder" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="DuplicateFolder_Click" />
-                        <Button Content="Open in Explorer" Tag="Icons/icon-open-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="OpenInExplorer_Click" />
-                        <Button Content="Folder settings" Tag="Icons/icon-settings.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="FolderSettings_Click" />
-                        <Button Content="Scan now" Tag="Icons/icon-scan.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="ScanNow_Click" />
+                        <Button Content="{local:Loc Folders.AddFolder}" Tag="Icons/icon-add-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="AddFolder_Click" />
+                        <Button Content="{local:Loc Folders.RemoveFolder}" Tag="Icons/icon-remove-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="RemoveFolder_Click" />
+                        <Button Content="{local:Loc Folders.DuplicateFolder}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="DuplicateFolder_Click" />
+                        <Button Content="{local:Loc Folders.OpenInExplorer}" Tag="Icons/icon-open-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="OpenInExplorer_Click" />
+                        <Button Content="{local:Loc Folders.FolderSettings}" Tag="Icons/icon-settings.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="FolderSettings_Click" />
+                        <Button Content="{local:Loc Folders.ScanNow}" Tag="Icons/icon-scan.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="ScanNow_Click" />
                         <Separator Margin="0,4,0,4" />
-                        <Button Content="Export folder..." Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="ExportFolder_Click" />
-                        <Button Content="Import folder..." Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportFolder_Click" />
+                        <Button Content="{local:Loc Folders.ExportFolder}" Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="ExportFolder_Click" />
+                        <Button Content="{local:Loc Folders.ImportFolder}" Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportFolder_Click" />
                     </StackPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="Folders" FontWeight="Bold" Margin="0,0,0,4" />
+                    <TextBlock DockPanel.Dock="Top" Text="{local:Loc Folders.Title}" FontWeight="Bold" Margin="0,0,0,4" />
                     <ListBox x:Name="FoldersList" SelectionChanged="FoldersList_SelectionChanged" MouseDoubleClick="FoldersList_MouseDoubleClick">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
@@ -133,17 +134,17 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock x:Name="RulesHeaderText" Grid.Row="0" FontWeight="Bold" Text="Selecteer een folder" Margin="0,0,0,4" />
+                    <TextBlock x:Name="RulesHeaderText" Grid.Row="0" FontWeight="Bold" Text="{local:Loc Folders.SelectAFolder}" Margin="0,0,0,4" />
 
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
-                        <Button Content="Add rule" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="AddRule_Click" />
-                        <Button Content="Edit rule" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="EditRule_Click" />
-                        <Button Content="Duplicate rule" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="DuplicateRule_Click" />
-                        <Button Content="Delete rule" Tag="Icons/icon-delete.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="DeleteRule_Click" />
-                        <Button Content="Export rule..." Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="ExportRule_Click" />
-                        <Button Content="Import rule..." Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="ImportRule_Click" />
-                        <Button Content="Test Rule (dry run)" Tag="Icons/icon-inspect.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="DryRun_Click" />
-                        <Button Content="Run rule" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="RunRule_Click" />
+                        <Button Content="{local:Loc Rules.AddRule}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="AddRule_Click" />
+                        <Button Content="{local:Loc Rules.EditRule}" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="EditRule_Click" />
+                        <Button Content="{local:Loc Rules.DuplicateRule}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="DuplicateRule_Click" />
+                        <Button Content="{local:Loc Rules.DeleteRule}" Tag="Icons/icon-delete.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="DeleteRule_Click" />
+                        <Button Content="{local:Loc Rules.ExportRule}" Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="ExportRule_Click" />
+                        <Button Content="{local:Loc Rules.ImportRule}" Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="ImportRule_Click" />
+                        <Button Content="{local:Loc Rules.TestDryRun}" Tag="Icons/icon-inspect.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="DryRun_Click" />
+                        <Button Content="{local:Loc Rules.RunRule}" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="RunRule_Click" />
                     </StackPanel>
 
                     <Grid Grid.Row="2">
@@ -167,17 +168,17 @@
                         <TextBox x:Name="RulePreviewText" Grid.Column="1" IsReadOnly="True" TextWrapping="NoWrap"
                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                                  FontFamily="Consolas" FontSize="11" Background="#FFF8F8F8"
-                                 Text="Selecteer een regel om te zien wat ze doet." />
+                                 Text="{local:Loc Rules.SelectARule}" />
                     </Grid>
 
-                    <TextBlock Grid.Row="3" Text="Resultaat:" FontWeight="Bold" Margin="0,8,0,4" />
+                    <TextBlock Grid.Row="3" Text="{local:Loc Common.Result}" FontWeight="Bold" Margin="0,8,0,4" />
 
                     <DataGrid x:Name="ResultsGrid" Grid.Row="4" AutoGenerateColumns="False" IsReadOnly="True"
                               HorizontalScrollBarVisibility="Auto" MouseDoubleClick="ResultsGrid_MouseDoubleClick">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Bestand" Binding="{Binding FileName}" Width="180" />
-                            <DataGridTextColumn Header="Actie" Binding="{Binding Action}" Width="100" />
-                            <DataGridTextColumn Header="Van" Binding="{Binding FromPath}" Width="280">
+                            <DataGridTextColumn Header="{local:Loc Common.Column.File}" Binding="{Binding FileName}" Width="180" />
+                            <DataGridTextColumn Header="{local:Loc Common.Column.Action}" Binding="{Binding Action}" Width="100" />
+                            <DataGridTextColumn Header="{local:Loc Common.Column.From}" Binding="{Binding FromPath}" Width="280">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="TextAlignment" Value="Right" />
@@ -185,7 +186,7 @@
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Naar" Binding="{Binding ToPath}" Width="280">
+                            <DataGridTextColumn Header="{local:Loc Common.Column.To}" Binding="{Binding ToPath}" Width="280">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="TextAlignment" Value="Right" />
@@ -193,8 +194,8 @@
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
-                            <DataGridTextColumn Header="Melding" Binding="{Binding Message}" Width="200" />
+                            <DataGridTextColumn Header="{local:Loc Common.Column.Status}" Binding="{Binding Status}" Width="90" />
+                            <DataGridTextColumn Header="{local:Loc Common.Column.Message}" Binding="{Binding Message}" Width="200" />
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -203,29 +204,29 @@
             </Grid>
         </TabItem>
 
-        <TabItem Header="Rules">
-            <TextBlock Text="Regels worden per folder beheerd op het Folders-tabblad." Margin="16" />
+        <TabItem Header="{local:Loc MainWindow.Tab.Rules}">
+            <TextBlock Text="{local:Loc Rules.ManagedPerFolder}" Margin="16" />
         </TabItem>
 
-        <TabItem Header="Activity">
+        <TabItem Header="{local:Loc MainWindow.Tab.Activity}">
             <DockPanel Margin="8">
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
-                    <TextBlock Text="Zoeken:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBlock Text="{local:Loc Activity.Search}" VerticalAlignment="Center" Margin="0,0,4,0" />
                     <TextBox x:Name="ActivitySearchBox" Width="160" Margin="0,0,12,0" TextChanged="ActivityFilter_Changed" />
-                    <TextBlock Text="Status:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBlock Text="{local:Loc Activity.Status}" VerticalAlignment="Center" Margin="0,0,4,0" />
                     <ComboBox x:Name="ActivityStatusFilter" Width="110" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
-                    <TextBlock Text="Regel:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBlock Text="{local:Loc Activity.Rule}" VerticalAlignment="Center" Margin="0,0,4,0" />
                     <ComboBox x:Name="ActivityRuleFilter" Width="140" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
-                    <TextBlock Text="Folder:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBlock Text="{local:Loc Activity.Folder}" VerticalAlignment="Center" Margin="0,0,4,0" />
                     <ComboBox x:Name="ActivityFolderFilter" Width="160" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
-                    <Button Content="Refresh" Tag="Icons/icon-refresh.png" Style="{StaticResource IconButton}" Margin="0,0,8,0" Click="RefreshActivity_Click" />
-                    <Button Content="Undo last action" Tag="Icons/icon-undo.png" Style="{StaticResource IconButton}" Click="UndoLastAction_Click" />
+                    <Button Content="{local:Loc Common.Refresh}" Tag="Icons/icon-refresh.png" Style="{StaticResource IconButton}" Margin="0,0,8,0" Click="RefreshActivity_Click" />
+                    <Button Content="{local:Loc Activity.UndoLastAction}" Tag="Icons/icon-undo.png" Style="{StaticResource IconButton}" Click="UndoLastAction_Click" />
                 </StackPanel>
                 <DataGrid x:Name="ActivityGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           HorizontalScrollBarVisibility="Auto" MouseDoubleClick="ActivityGrid_MouseDoubleClick">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Tijd (UTC)" Binding="{Binding TimestampUtc}" Width="150" />
-                        <DataGridTextColumn Header="Folder" Binding="{Binding FolderPath}" Width="220">
+                        <DataGridTextColumn Header="{local:Loc Activity.Column.TimeUtc}" Binding="{Binding TimestampUtc}" Width="150" />
+                        <DataGridTextColumn Header="{local:Loc Common.Column.Folder}" Binding="{Binding FolderPath}" Width="220">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="TextAlignment" Value="Right" />
@@ -233,89 +234,96 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Regel" Binding="{Binding RuleName}" Width="120" />
-                        <DataGridTextColumn Header="Bestand" Binding="{Binding FileName}" Width="140" />
-                        <DataGridTextColumn Header="Actie" Binding="{Binding Action}" Width="90" />
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" />
-                        <DataGridTextColumn Header="Melding" Binding="{Binding Message}" Width="220" />
+                        <DataGridTextColumn Header="{local:Loc Common.Column.Rule}" Binding="{Binding RuleName}" Width="120" />
+                        <DataGridTextColumn Header="{local:Loc Common.Column.File}" Binding="{Binding FileName}" Width="140" />
+                        <DataGridTextColumn Header="{local:Loc Common.Column.Action}" Binding="{Binding Action}" Width="90" />
+                        <DataGridTextColumn Header="{local:Loc Common.Column.Status}" Binding="{Binding Status}" Width="80" />
+                        <DataGridTextColumn Header="{local:Loc Common.Column.Message}" Binding="{Binding Message}" Width="220" />
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>
         </TabItem>
 
-        <TabItem Header="Settings">
+        <TabItem Header="{local:Loc MainWindow.Tab.Settings}">
             <StackPanel Margin="16">
-                <TextBlock Text="Veiligheid" FontWeight="Bold" Margin="0,0,0,8" />
+                <TextBlock Text="{local:Loc Settings.Safety}" FontWeight="Bold" Margin="0,0,0,8" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                    <TextBlock Text="Confirmation threshold:" Width="200" VerticalAlignment="Center" />
+                    <TextBlock Text="{local:Loc Settings.ConfirmationThreshold}" Width="200" VerticalAlignment="Center" />
                     <TextBox x:Name="ConfirmationThresholdTextBox" Width="80" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                    <TextBlock Text="Max files per run:" Width="200" VerticalAlignment="Center" />
+                    <TextBlock Text="{local:Loc Settings.MaxFilesPerRun}" Width="200" VerticalAlignment="Center" />
                     <TextBox x:Name="MaxFilesPerRunTextBox" Width="80" />
                 </StackPanel>
 
-                <TextBlock Text="Extra beschermde mappen (naast C:\Windows, Program Files, ProgramData):" Margin="0,0,0,4" />
+                <TextBlock Text="{local:Loc Settings.ProtectedFolders}" Margin="0,0,0,4" />
                 <DockPanel Margin="0,0,0,12" Height="110">
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
                         <TextBox x:Name="NewProtectedFolderTextBox" Width="300" Margin="0,0,4,0" />
-                        <Button Content="Browse..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="BrowseProtectedFolder_Click" />
-                        <Button Content="Toevoegen" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedFolder_Click" />
+                        <Button Content="{local:Loc Common.Browse}" Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="BrowseProtectedFolder_Click" />
+                        <Button Content="{local:Loc Common.Add}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedFolder_Click" />
                     </StackPanel>
                     <ListBox x:Name="ProtectedFoldersListBox">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding}" Width="300" />
-                                    <Button Content="Remove" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveProtectedFolder_Click" />
+                                    <Button Content="{local:Loc Common.Remove}" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveProtectedFolder_Click" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </DockPanel>
 
-                <TextBlock Text="Beschermde extensies (bv. exe, dll):" Margin="0,0,0,4" />
+                <TextBlock Text="{local:Loc Settings.ProtectedExtensions}" Margin="0,0,0,4" />
                 <DockPanel Margin="0,0,0,12" Height="110">
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
                         <TextBox x:Name="NewProtectedExtensionTextBox" Width="150" Margin="0,0,4,0" />
-                        <Button Content="Toevoegen" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedExtension_Click" />
+                        <Button Content="{local:Loc Common.Add}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedExtension_Click" />
                     </StackPanel>
                     <ListBox x:Name="ProtectedExtensionsListBox">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding}" Width="150" />
-                                    <Button Content="Remove" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveProtectedExtension_Click" />
+                                    <Button Content="{local:Loc Common.Remove}" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveProtectedExtension_Click" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </DockPanel>
 
-                <TextBlock Text="Weergave" FontWeight="Bold" Margin="0,0,0,8" />
+                <TextBlock Text="{local:Loc Settings.Display}" FontWeight="Bold" Margin="0,0,0,8" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                    <TextBlock Text="Icoonset:" Width="200" VerticalAlignment="Center" />
+                    <TextBlock Text="{local:Loc Settings.IconSet}" Width="200" VerticalAlignment="Center" />
                     <ComboBox x:Name="IconSetComboBox" Width="120" />
                 </StackPanel>
-                <TextBlock Text="Wordt direct toegepast bij opslaan. Eigen sets: zet een map met dezelfde bestandsnamen in IconSets\ naast FldrSrtr.exe."
+                <TextBlock Text="{local:Loc Settings.IconSet.Help}"
                            Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                    <Button Content="Eigen iconen..." Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Click="IconOverrides_Click" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <Button Content="{local:Loc Settings.CustomIcons}" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Click="IconOverrides_Click" />
                 </StackPanel>
 
-                <TextBlock Text="Backups" FontWeight="Bold" Margin="0,0,0,8" />
-                <CheckBox x:Name="BackupOnSettingsChangeCheckBox" Content="Backup maken van general.config.json bij elke gewijzigde instelling" Margin="0,0,0,4" />
-                <TextBlock Text="Folders en regels (folders.config.json) worden altijd gebackupt, ongeacht deze instelling."
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <TextBlock Text="{local:Loc Settings.Language}" Width="200" VerticalAlignment="Center" />
+                    <ComboBox x:Name="LanguageComboBox" Width="120" />
+                </StackPanel>
+                <TextBlock Text="{local:Loc Settings.Language.Help}"
+                           Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
+
+                <TextBlock Text="{local:Loc Settings.Backups}" FontWeight="Bold" Margin="0,0,0,8" />
+                <CheckBox x:Name="BackupOnSettingsChangeCheckBox" Content="{local:Loc Settings.BackupOnSettingsChange}" Margin="0,0,0,4" />
+                <TextBlock Text="{local:Loc Settings.BackupOnSettingsChange.Help}"
                            Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                    <Button Content="Save settings" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Click="SaveSettings_Click" />
+                    <Button Content="{local:Loc Settings.SaveSettings}" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Click="SaveSettings_Click" />
                 </StackPanel>
 
-                <TextBlock Text="Configuratie" FontWeight="Bold" Margin="0,0,0,8" />
+                <TextBlock Text="{local:Loc Settings.Configuration}" FontWeight="Bold" Margin="0,0,0,8" />
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Export volledige configuratie..." Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,8,0" Click="ExportConfig_Click" />
-                    <Button Content="Import volledige configuratie..." Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportConfig_Click" />
+                    <Button Content="{local:Loc Settings.ExportConfig}" Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,8,0" Click="ExportConfig_Click" />
+                    <Button Content="{local:Loc Settings.ImportConfig}" Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportConfig_Click" />
                 </StackPanel>
             </StackPanel>
         </TabItem>

@@ -35,7 +35,7 @@ namespace FldrSrtr
                 return;
             }
 
-            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = "PNG-afbeeldingen (*.png)|*.png" })
+            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = Localization.Get("IconOverrides.PngFilter") })
             {
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -54,7 +54,7 @@ namespace FldrSrtr
 
         private void SaveAsPack_Click(object sender, RoutedEventArgs e)
         {
-            var prompt = new TextPromptWindow("Naam voor de nieuwe icoonset:", "Bewaren als set") { Owner = this };
+            var prompt = new TextPromptWindow(Localization.Get("IconOverrides.SaveAsPack.Prompt"), Localization.Get("IconOverrides.SaveAsPack")) { Owner = this };
             if (prompt.ShowDialog() != true || string.IsNullOrWhiteSpace(prompt.Value))
             {
                 return;
@@ -63,7 +63,7 @@ namespace FldrSrtr
             string packName = prompt.Value;
             if (packName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
-                MessageBox.Show(this, "De naam mag geen tekens bevatten die niet in een mapnaam mogen (bv. \\ / : * ? \" < > |).",
+                MessageBox.Show(this, Localization.Get("IconOverrides.InvalidName"),
                     "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -71,7 +71,7 @@ namespace FldrSrtr
             string packFolder = Path.Combine(IconSetProvider.IconSetsRootFolder, packName);
             if (Directory.Exists(packFolder))
             {
-                MessageBoxResult overwrite = MessageBox.Show(this, $"Er bestaat al een icoonset met de naam '{packName}'. Overschrijven?",
+                MessageBoxResult overwrite = MessageBox.Show(this, Localization.Get("IconOverrides.ConfirmOverwrite", packName),
                     "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (overwrite != MessageBoxResult.Yes)
                 {
@@ -82,7 +82,7 @@ namespace FldrSrtr
             Dictionary<string, string> keyToSourceFile = _rows.ToDictionary(row => row.Key, row => row.PreviewPath);
             IconSetProvider.SavePack(packName, keyToSourceFile);
 
-            MessageBox.Show(this, $"Icoonset '{packName}' is bewaard en meteen beschikbaar bij Icoonset in Settings.",
+            MessageBox.Show(this, Localization.Get("IconOverrides.SaveAsPack.Success", packName),
                 "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 

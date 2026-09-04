@@ -69,10 +69,12 @@ Get-ChildItem -Path $PublishSrc -File |
     Where-Object { $_.Extension -notin @(".pdb") } |
     Copy-Item -Destination $StagingDir -Force
 
-# Icon packs (IconSets\<Pack>\icon-*.png) leven als losse bestanden naast de exe, niet embedded
-# (zie IconSetProvider) — zonder deze copy zou de release zonder iconen (en zonder Default-
-# fallback) starten, want -File hierboven slaat submappen over.
-Copy-Item -Path (Join-Path $PublishSrc "IconSets") -Destination $StagingDir -Recurse -Force
+# Subfolders next to the exe (IconSets\<Pack>\icon-*.png, Languages\<code>.json, ...) live as
+# plain files, not embedded (see IconSetProvider/Localization) — -File above skips them entirely,
+# so copy every subdirectory generically rather than naming each one and risking a repeat of the
+# bug where a newly-added folder (Languages) silently shipped empty.
+Get-ChildItem -Path $PublishSrc -Directory |
+    ForEach-Object { Copy-Item -Path $_.FullName -Destination $StagingDir -Recurse -Force }
 
 Copy-Item -Path $IconPng -Destination $StagingDir -Force
 

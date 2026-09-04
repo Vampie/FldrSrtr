@@ -10,7 +10,7 @@ namespace FldrSrtr
         public ConflictDialog(string existingPath, string incomingPath)
         {
             InitializeComponent();
-            MessageText.Text = $"Doelbestand bestaat al:\n{existingPath}\n\nBron: {incomingPath}\n\nWat wil je doen?";
+            MessageText.Text = Localization.Get("ConflictDialog.Message", existingPath, incomingPath);
         }
 
         private void Skip_Click(object sender, RoutedEventArgs e)

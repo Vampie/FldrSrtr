@@ -84,6 +84,19 @@ namespace App.Infrastructure.Tests
         }
 
         [Fact]
+        public void LoadOrCreateDefault_RoundTripsLanguage()
+        {
+            var sut = new ConfigService(_tempDir);
+            var saved = new AppConfig();
+            saved.Settings.Language = "en";
+            sut.Save(saved);
+
+            var reloaded = sut.LoadOrCreateDefault();
+
+            reloaded.Settings.Language.Should().Be("en");
+        }
+
+        [Fact]
         public void SaveSettings_OnlyTouchesGeneralConfigFile()
         {
             var sut = new ConfigService(_tempDir);
