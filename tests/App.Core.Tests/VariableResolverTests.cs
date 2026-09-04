@@ -123,6 +123,101 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void Resolve_GuidToken_ProducesDistinctValuesEachTime()
+        {
+            var file = MakeFile();
+
+            string first = VariableResolver.Resolve("{Guid}", file, file.FullPath, DateTime.Now);
+            string second = VariableResolver.Resolve("{Guid}", file, file.FullPath, DateTime.Now);
+
+            first.Should().NotBe(second);
+            first.Should().MatchRegex("^[0-9a-f]{32}$");
+        }
+
+        [Fact]
+        public void Resolve_UnixTimestamp_IsCloseToNow()
+        {
+            var file = MakeFile();
+            long expected = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            string result = VariableResolver.Resolve("{UnixTimestamp}", file, file.FullPath, DateTime.Now);
+
+            long.Parse(result).Should().BeInRange(expected - 5, expected + 5);
+        }
+
+        [Fact]
+        public void Resolve_UnixTimestampMicro_IsFinerGrainedThanSeconds()
+        {
+            var file = MakeFile();
+
+            string first = VariableResolver.Resolve("{UnixTimestampMicro}", file, file.FullPath, DateTime.Now);
+            string second = VariableResolver.Resolve("{UnixTimestampMicro}", file, file.FullPath, DateTime.Now);
+
+            long.Parse(first).Should().BeGreaterThan(1_600_000_000_000_000); // sanity: looks like microseconds since epoch, not seconds
+            (long.Parse(second) - long.Parse(first)).Should().BeGreaterThanOrEqualTo(0);
+        }
+
+        [Fact]
+        public void Resolve_RandomDefault_Produces6ZeroPaddedDigits()
+        {
+            var file = MakeFile();
+
+            string result = VariableResolver.Resolve("{Random}", file, file.FullPath, DateTime.Now);
+
+            result.Should().MatchRegex("^[0-9]{6}$");
+        }
+
+        [Theory]
+        [InlineData("{Random:0}", "^[0-9]$")]
+        [InlineData("{Random:0000}", "^[0-9]{4}$")]
+        public void Resolve_RandomWithPattern_RespectsDigitCountAndPadding(string template, string expectedRegex)
+        {
+            var file = MakeFile();
+
+            string result = VariableResolver.Resolve(template, file, file.FullPath, DateTime.Now);
+
+            result.Should().MatchRegex(expectedRegex);
+        }
+
+        [Fact]
+        public void Resolve_RandomWithHashPattern_DoesNotZeroPad()
+        {
+            var file = MakeFile();
+            bool sawUnpadded = false;
+
+            for (int i = 0; i < 200 && !sawUnpadded; i++)
+            {
+                string result = VariableResolver.Resolve("{Random:###0}", file, file.FullPath, DateTime.Now);
+                if (result.Length < 4)
+                {
+                    sawUnpadded = true;
+                }
+            }
+
+            sawUnpadded.Should().BeTrue("a '#'-based pattern should not force leading zeros across many samples");
+        }
+
+        [Fact]
+        public void Resolve_RandomStringDefault_Produces8CharactersAlphanumeric()
+        {
+            var file = MakeFile();
+
+            string result = VariableResolver.Resolve("{RandomString}", file, file.FullPath, DateTime.Now);
+
+            result.Should().MatchRegex("^[A-Za-z0-9]{8}$");
+        }
+
+        [Fact]
+        public void Resolve_RandomStringWithLength_UsesGivenLength()
+        {
+            var file = MakeFile();
+
+            string result = VariableResolver.Resolve("{RandomString:16}", file, file.FullPath, DateTime.Now);
+
+            result.Should().MatchRegex("^[A-Za-z0-9]{16}$");
+        }
+
+        [Fact]
         public void Resolve_NullOrEmptyTemplate_ReturnsUnchanged()
         {
             var file = MakeFile();

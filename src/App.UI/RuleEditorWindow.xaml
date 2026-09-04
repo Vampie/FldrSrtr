@@ -31,13 +31,15 @@
 
         <Border Grid.Row="1" x:Name="VariableHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="8" Margin="0,0,0,8">
             <TextBlock TextWrapping="Wrap" FontFamily="Consolas" FontSize="11">
-                Variabelen (in Destination/Arguments) — klik "Insert variable" bij een actie, of typ ze zelf:
+                Variabelen (in Destination/Arguments) — klik "Insert variable" bij een actie voor het volledige, onderverdeelde menu, of typ ze zelf:
                 <LineBreak />
-                Van vandaag: {FileName} {OriginalName} {Extension} {OriginalExtension} {FullPath} {Directory} {FileSize} {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}
+                <Bold>Algemeen:</Bold> {Counter} (start 1, stap 1), {Counter:100}, {Counter:100:5} — telt op per verwerkt bestand in deze run, niet bewaard tussen runs.
+                {Guid} — een uniek gegenereerde GUID. {UnixTimestamp} / {UnixTimestampMicro} — huidig tijdstip in seconden/microseconden sinds 1970.
+                {Random} (6 cijfers) / {Random:0000} (eigen aantal cijfers/opvulling) — willekeurig getal. {RandomString} (8 tekens) / {RandomString:12} (eigen lengte) — willekeurige tekst.
                 <LineBreak />
-                Van het bestand zelf: {CreatedYear} {CreatedMonth} {CreatedDay} {CreatedDate} {CreatedTime} — en dezelfde set met "Modified" i.p.v. "Created"
+                <Bold>File:</Bold> {FileName} {OriginalName} {Extension} {OriginalExtension} {FullPath} {Directory} {FileSize}, en de datum/tijd van het bestand zelf: {CreatedYear} {CreatedMonth} {CreatedDay} {CreatedDate} {CreatedTime} (en dezelfde set met "Modified" i.p.v. "Created").
                 <LineBreak />
-                Teller: {Counter} (start 1, stap 1), {Counter:100} (start 100), {Counter:100:5} (start 100, stap 5) — telt op per verwerkt bestand in deze run, niet bewaard tussen runs.
+                <Bold>Datum (huidige datum):</Bold> {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}
                 <LineBreak />
                 Voorbeeld: D:\Archief\{Year}\{Month}\{FileName}.{Extension} — een niet-bestaande submap wordt automatisch aangemaakt.
             </TextBlock>

@@ -24,13 +24,17 @@ namespace FldrSrtr
         private static readonly ActionType[] BasicActions = { ActionType.Move, ActionType.Copy, ActionType.Rename, ActionType.DeleteToRecycleBin };
         private static readonly ActionType[] AllActions = (ActionType[])Enum.GetValues(typeof(ActionType));
 
-        private static readonly string[] VariableTokens =
+        /// <summary>Insert Variable menu, grouped into submenus so the list stays manageable.</summary>
+        private static readonly (string Group, string[] Tokens)[] VariableGroups =
         {
-            "{FileName}", "{OriginalName}", "{Extension}", "{OriginalExtension}", "{FullPath}", "{Directory}", "{FileSize}",
-            "{Year}", "{Month}", "{Day}", "{Hour}", "{Minute}", "{Second}", "{Date}", "{Time}",
-            "{CreatedYear}", "{CreatedMonth}", "{CreatedDay}", "{CreatedHour}", "{CreatedMinute}", "{CreatedSecond}", "{CreatedDate}", "{CreatedTime}",
-            "{ModifiedYear}", "{ModifiedMonth}", "{ModifiedDay}", "{ModifiedHour}", "{ModifiedMinute}", "{ModifiedSecond}", "{ModifiedDate}", "{ModifiedTime}",
-            "{Counter:1:1}"
+            ("Algemeen", new[] { "{Counter:1:1}", "{Guid}", "{UnixTimestamp}", "{UnixTimestampMicro}", "{Random:0000}", "{RandomString:8}" }),
+            ("File", new[]
+            {
+                "{FileName}", "{OriginalName}", "{Extension}", "{OriginalExtension}", "{FullPath}", "{Directory}", "{FileSize}",
+                "{CreatedYear}", "{CreatedMonth}", "{CreatedDay}", "{CreatedHour}", "{CreatedMinute}", "{CreatedSecond}", "{CreatedDate}", "{CreatedTime}",
+                "{ModifiedYear}", "{ModifiedMonth}", "{ModifiedDay}", "{ModifiedHour}", "{ModifiedMinute}", "{ModifiedSecond}", "{ModifiedDate}", "{ModifiedTime}"
+            }),
+            ("Datum (huidige datum)", new[] { "{Year}", "{Month}", "{Day}", "{Hour}", "{Minute}", "{Second}", "{Date}", "{Time}" })
         };
 
         private static readonly Dictionary<ActionType, string> ActionHelp = new Dictionary<ActionType, string>
@@ -410,11 +414,16 @@ namespace FldrSrtr
         private void ShowVariableMenu(Button anchor, TextBox target)
         {
             var menu = new ContextMenu();
-            foreach (string token in VariableTokens)
+            foreach ((string group, string[] tokens) in VariableGroups)
             {
-                var item = new MenuItem { Header = token };
-                item.Click += (s, e) => InsertAtCursor(target, token);
-                menu.Items.Add(item);
+                var groupItem = new MenuItem { Header = group };
+                foreach (string token in tokens)
+                {
+                    var item = new MenuItem { Header = token };
+                    item.Click += (s, e) => InsertAtCursor(target, token);
+                    groupItem.Items.Add(item);
+                }
+                menu.Items.Add(groupItem);
             }
             anchor.ContextMenu = menu;
             menu.PlacementTarget = anchor;
