@@ -12,7 +12,7 @@
         -->
         <DataTemplate x:Key="IconButtonContentTemplate">
             <StackPanel Orientation="Horizontal">
-                <Image Source="{Binding RelativeSource={RelativeSource AncestorType=ButtonBase}, Path=Tag}"
+                <Image Source="{Binding RelativeSource={RelativeSource AncestorType=ButtonBase}, Path=Tag, Converter={x:Static local:IconPathConverter.Instance}}"
                        Width="16" Height="16" Margin="0,0,5,0"
                        Visibility="{Binding RelativeSource={RelativeSource AncestorType=ButtonBase}, Path=Tag, Converter={x:Static local:NullToVisibilityConverter.Instance}}" />
                 <TextBlock Text="{Binding}" VerticalAlignment="Center" />

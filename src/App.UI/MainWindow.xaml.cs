@@ -611,6 +611,13 @@ namespace FldrSrtr
             MaxFilesPerRunTextBox.Text = _config.Settings.MaxFilesPerRun.ToString();
             ProtectedFoldersListBox.ItemsSource = _config.Settings.ProtectedFolders;
             ProtectedExtensionsListBox.ItemsSource = _config.Settings.ProtectedExtensions;
+
+            IconSetComboBox.ItemsSource = new[] { "Default", "Slim" };
+            IconSetComboBox.SelectedItem = _config.Settings.IconSet;
+            if (IconSetComboBox.SelectedItem == null)
+            {
+                IconSetComboBox.SelectedIndex = 0;
+            }
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -628,6 +635,7 @@ namespace FldrSrtr
 
             _config.Settings.ConfirmationThreshold = threshold;
             _config.Settings.MaxFilesPerRun = maxFiles;
+            _config.Settings.IconSet = IconSetComboBox.SelectedItem as string ?? "Default";
             SaveConfig();
             MessageBox.Show(this, "Instellingen opgeslagen.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
         }

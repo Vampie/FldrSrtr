@@ -20,7 +20,8 @@ namespace FldrSrtr
                 return;
             }
 
-            new ConfigService().LoadOrCreateDefault();
+            var config = new ConfigService().LoadOrCreateDefault();
+            IconSetProvider.ApplySetting(config.Settings.IconSet);
         }
     }
 }

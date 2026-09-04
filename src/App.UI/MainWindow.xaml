@@ -265,6 +265,13 @@
                     </ListBox>
                 </DockPanel>
 
+                <TextBlock Text="Weergave" FontWeight="Bold" Margin="0,0,0,8" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <TextBlock Text="Icoonset:" Width="200" VerticalAlignment="Center" />
+                    <ComboBox x:Name="IconSetComboBox" Width="120" />
+                </StackPanel>
+                <TextBlock Text="Van toepassing na herstart van FldrSrtr." Foreground="Gray" FontSize="11" Margin="0,0,0,20" />
+
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                     <Button Content="Save settings" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Click="SaveSettings_Click" />
                 </StackPanel>

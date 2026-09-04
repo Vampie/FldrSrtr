@@ -16,5 +16,8 @@ namespace App.Core.Configuration
 
         /// <summary>Hard cap — a real run matching more files than this is refused outright.</summary>
         public int MaxFilesPerRun { get; set; } = 1000;
+
+        /// <summary>Which button icon set to use — "Default" or "Slim". Takes effect on next start.</summary>
+        public string IconSet { get; set; } = "Default";
     }
 }
