@@ -29,20 +29,63 @@
                       Checked="AdvancedModeCheckBox_Changed" Unchecked="AdvancedModeCheckBox_Changed" />
         </StackPanel>
 
-        <Border Grid.Row="1" x:Name="VariableHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="8" Margin="0,0,0,8">
-            <TextBlock TextWrapping="Wrap" FontFamily="Consolas" FontSize="11">
-                Variabelen (in Destination/Arguments) — klik "Insert variable" bij een actie voor het volledige, onderverdeelde menu, of typ ze zelf:
-                <LineBreak />
-                <Bold>Algemeen:</Bold> {Counter} (start 1, stap 1), {Counter:100}, {Counter:100:5} — telt op per verwerkt bestand in deze run, niet bewaard tussen runs.
-                {Guid} — een uniek gegenereerde GUID.
-                {Random} (6 cijfers) / {Random:0000} (eigen aantal cijfers/opvulling) — willekeurig getal. {RandomString} (8 tekens) / {RandomString:12} (eigen lengte) — willekeurige tekst.
-                <LineBreak />
-                <Bold>File:</Bold> {FileName} {OriginalName} {Extension} {OriginalExtension} {FullPath} {Directory} {FileSize}, en de datum/tijd van het bestand zelf: {CreatedYear} {CreatedMonth} {CreatedDay} {CreatedDate} {CreatedTime} (en dezelfde set met "Modified" i.p.v. "Created").
-                <LineBreak />
-                <Bold>Datum (huidige datum):</Bold> {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}, {UnixTimestamp} / {UnixTimestampMicro} (seconden/microseconden sinds 1970).
-                <LineBreak />
-                Voorbeeld: D:\Archief\{Year}\{Month}\{FileName}.{Extension} — een niet-bestaande submap wordt automatisch aangemaakt.
-            </TextBlock>
+        <Border Grid.Row="1" x:Name="VariableHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="10" Margin="0,0,0,8">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,8" FontSize="11">
+                    Variabelen voor Destination/Arguments — klik "Insert variable" bij een actie voor het volledige menu, of typ ze hier zelf over:
+                </TextBlock>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="260" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Algemeen" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{}{Counter} / {Counter:100} / {Counter:100:5}" FontFamily="Consolas" FontSize="11" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="Telt op per verwerkt bestand in deze run; niet bewaard tussen runs." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{}{Guid}" FontFamily="Consolas" FontSize="11" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="Een unieke, telkens opnieuw gegenereerde GUID." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{}{Random} / {Random:0000}" FontFamily="Consolas" FontSize="11" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="Willekeurig getal — het patroon bepaalt het aantal cijfers en de opvulling met nullen." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="{}{RandomString} / {RandomString:12}" FontFamily="Consolas" FontSize="11" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="Willekeurige tekst — het getal na de dubbele punt is de lengte (standaard 8)." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,12" />
+
+                    <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="File" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="{}{FileName} {Extension} {FullPath} {Directory} {FileSize} ..." FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="6" Grid.Column="1" Text="Eigenschappen van het bestand zelf (huidige naam/pad — verandert mee als een eerdere actie al hernoemd heeft)." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
+                    <TextBlock Grid.Row="7" Grid.Column="0" Text="{}{CreatedYear} ... {CreatedTime}" FontFamily="Consolas" FontSize="11" />
+                    <TextBlock Grid.Row="7" Grid.Column="1" Text="Aanmaakdatum/-tijd van het bestand." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
+                    <TextBlock Grid.Row="8" Grid.Column="0" Text="{}{ModifiedYear} ... {ModifiedTime}" FontFamily="Consolas" FontSize="11" />
+                    <TextBlock Grid.Row="8" Grid.Column="1" Text="Wijzigingsdatum/-tijd van het bestand." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,12" />
+
+                    <TextBlock Grid.Row="9" Grid.ColumnSpan="2" Text="Datum (huidige datum)" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock Grid.Row="10" Grid.Column="0" Text="{}{Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="10" Grid.Column="1" Text="Het moment waarop de regel draait — hetzelfde voor elk bestand in deze run." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
+                    <TextBlock Grid.Row="11" Grid.Column="0" Text="{}{UnixTimestamp} / {UnixTimestampMicro}" FontFamily="Consolas" FontSize="11" />
+                    <TextBlock Grid.Row="11" Grid.Column="1" Text="Datzelfde moment, als seconden/microseconden sinds 1970." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,0" />
+                </Grid>
+
+                <TextBlock Margin="0,10,0,0" TextWrapping="Wrap" FontSize="11">
+                    <Run Text="Voorbeeld: " />
+                    <Run Text="D:\Archief\{Year}\{Month}\{FileName}.{Extension}" FontFamily="Consolas" />
+                    <Run Text=" — een niet-bestaande submap wordt automatisch aangemaakt." />
+                </TextBlock>
+            </StackPanel>
         </Border>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
