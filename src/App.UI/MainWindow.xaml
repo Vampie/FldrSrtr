@@ -272,7 +272,8 @@
                     <TextBlock Text="Icoonset:" Width="200" VerticalAlignment="Center" />
                     <ComboBox x:Name="IconSetComboBox" Width="120" />
                 </StackPanel>
-                <TextBlock Text="Van toepassing na herstart van FldrSrtr." Foreground="Gray" FontSize="11" Margin="0,0,0,20" />
+                <TextBlock Text="Wordt direct toegepast bij opslaan. Eigen sets: zet een map met dezelfde bestandsnamen in IconSets\ naast FldrSrtr.exe."
+                           Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                     <Button Content="Save settings" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Click="SaveSettings_Click" />

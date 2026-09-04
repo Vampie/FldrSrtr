@@ -1,13 +1,16 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Windows.Data;
 
 namespace FldrSrtr
 {
     /// <summary>
-    /// Rewrites a button's Tag (e.g. "Icons/icon-add.png", always written against the default
-    /// set in XAML) to the currently active icon set's folder — so every IconButton's XAML stays
-    /// untouched regardless of which set (Default/Slim/Line) is selected in Settings.
+    /// Resolves a button's Tag (e.g. "Icons/icon-add.png" — the filename is all that matters, the
+    /// folder prefix is historical and ignored) to an absolute file path in the currently active
+    /// icon pack (IconSetProvider.BasePath). Falls back to the Default pack when the active pack
+    /// doesn't have that specific file, so a partial custom pack — someone overriding just a few
+    /// icons — still renders everything else instead of going blank.
     /// </summary>
     public class IconPathConverter : IValueConverter
     {
@@ -20,9 +23,15 @@ namespace FldrSrtr
                 return null;
             }
 
-            return IconSetProvider.BasePath == IconSetProvider.DefaultFolder
-                ? path
-                : path.Replace(IconSetProvider.DefaultFolder, IconSetProvider.BasePath);
+            string fileName = Path.GetFileName(path);
+            string inActiveSet = Path.Combine(IconSetProvider.BasePath, fileName);
+            if (File.Exists(inActiveSet))
+            {
+                return inActiveSet;
+            }
+
+            string inDefaultSet = Path.Combine(IconSetProvider.DefaultSetFolder, fileName);
+            return File.Exists(inDefaultSet) ? inDefaultSet : null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>

@@ -69,6 +69,11 @@ Get-ChildItem -Path $PublishSrc -File |
     Where-Object { $_.Extension -notin @(".pdb") } |
     Copy-Item -Destination $StagingDir -Force
 
+# Icon packs (IconSets\<Pack>\icon-*.png) leven als losse bestanden naast de exe, niet embedded
+# (zie IconSetProvider) — zonder deze copy zou de release zonder iconen (en zonder Default-
+# fallback) starten, want -File hierboven slaat submappen over.
+Copy-Item -Path (Join-Path $PublishSrc "IconSets") -Destination $StagingDir -Recurse -Force
+
 Copy-Item -Path $IconPng -Destination $StagingDir -Force
 
 # Write-Host "-- Zippen naar $ZipPath --"

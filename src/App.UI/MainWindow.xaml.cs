@@ -643,7 +643,7 @@ namespace FldrSrtr
             ProtectedFoldersListBox.ItemsSource = _config.Settings.ProtectedFolders;
             ProtectedExtensionsListBox.ItemsSource = _config.Settings.ProtectedExtensions;
 
-            IconSetComboBox.ItemsSource = new[] { "Default", "Slim", "Line" };
+            IconSetComboBox.ItemsSource = IconSetProvider.GetAvailableIconSets();
             IconSetComboBox.SelectedItem = _config.Settings.IconSet;
             if (IconSetComboBox.SelectedItem == null)
             {

@@ -20,11 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Button icons, embedded into the exe so the portable release stays a single file — no
-         loose asset folder to ship. Source originals live in Resources/icons outside the repo.
-         Includes both the default set (Icons/) and the alternate "Slim" set (Icons/Slim/) —
-         switched at startup via AppSettings.IconSet, see IconSetProvider. -->
-    <Resource Include="Icons\**\*.png" />
+    <!-- Button icon packs — deliberately NOT embedded: copied next to the exe as plain files
+         (portable rule still holds, this is just a folder living alongside it instead of inside
+         it) so a pack can be added or edited without rebuilding. Source originals live in
+         Resources/icons outside the repo. Active pack switched at startup (and live from
+         Settings) via AppSettings.IconSet — see IconSetProvider/IconPathConverter. -->
+    <None Include="IconSets\**\*.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
