@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using App.Core.Model;
 
 namespace App.Core.Evaluation
@@ -208,10 +209,14 @@ namespace App.Core.Evaluation
 
         private static string TrimDot(string value) => (value ?? string.Empty).TrimStart('.');
 
+        /// <summary>
+        /// Splits an IsOneOf/IsNotOneOf list on commas, whitespace, or both — "pdf,docx",
+        /// "pdf docx" and "pdf, docx" all work, since users type these inconsistently.
+        /// </summary>
         private static string[] SplitList(string value) =>
-            (value ?? string.Empty)
-                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(v => TrimDot(v.Trim()))
+            Regex.Split((value ?? string.Empty).Trim(), @"[,\s]+")
+                .Where(v => !string.IsNullOrEmpty(v))
+                .Select(TrimDot)
                 .ToArray();
 
         private static long ParseLong(string value) =>

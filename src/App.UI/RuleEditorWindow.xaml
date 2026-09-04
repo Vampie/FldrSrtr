@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:model="clr-namespace:App.Core.Model;assembly=App.Core"
         xmlns:local="clr-namespace:FldrSrtr"
-        Title="Rule editor" Height="900" Width="1000"
+        Title="Rule editor" Height="900" Width="1100"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <local:ConditionNodeLabelConverter x:Key="NodeLabelConverter" />
@@ -34,12 +34,12 @@
                 Variabelen (in Destination/Arguments) — klik "Insert variable" bij een actie voor het volledige, onderverdeelde menu, of typ ze zelf:
                 <LineBreak />
                 <Bold>Algemeen:</Bold> {Counter} (start 1, stap 1), {Counter:100}, {Counter:100:5} — telt op per verwerkt bestand in deze run, niet bewaard tussen runs.
-                {Guid} — een uniek gegenereerde GUID. {UnixTimestamp} / {UnixTimestampMicro} — huidig tijdstip in seconden/microseconden sinds 1970.
+                {Guid} — een uniek gegenereerde GUID.
                 {Random} (6 cijfers) / {Random:0000} (eigen aantal cijfers/opvulling) — willekeurig getal. {RandomString} (8 tekens) / {RandomString:12} (eigen lengte) — willekeurige tekst.
                 <LineBreak />
                 <Bold>File:</Bold> {FileName} {OriginalName} {Extension} {OriginalExtension} {FullPath} {Directory} {FileSize}, en de datum/tijd van het bestand zelf: {CreatedYear} {CreatedMonth} {CreatedDay} {CreatedDate} {CreatedTime} (en dezelfde set met "Modified" i.p.v. "Created").
                 <LineBreak />
-                <Bold>Datum (huidige datum):</Bold> {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}
+                <Bold>Datum (huidige datum):</Bold> {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}, {UnixTimestamp} / {UnixTimestampMicro} (seconden/microseconden sinds 1970).
                 <LineBreak />
                 Voorbeeld: D:\Archief\{Year}\{Month}\{FileName}.{Extension} — een niet-bestaande submap wordt automatisch aangemaakt.
             </TextBlock>
@@ -125,7 +125,7 @@
 
         <Grid Grid.Row="6">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="340" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -153,12 +153,12 @@
                         <TextBlock Text="Action:" Width="90" VerticalAlignment="Center" />
                         <ComboBox x:Name="ActionTypeComboBox" Width="150" SelectionChanged="ActionType_Changed" />
                     </StackPanel>
-                    <TextBlock x:Name="ActionHelpText" Foreground="Gray" TextWrapping="Wrap" Margin="90,0,0,10" Width="500" HorizontalAlignment="Left" />
+                    <TextBlock x:Name="ActionHelpText" Foreground="Gray" TextWrapping="Wrap" Margin="90,0,0,10" Width="600" HorizontalAlignment="Left" />
 
                     <StackPanel x:Name="DestinationPanel" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="DestinationLabel" Text="Destination:" Width="90" VerticalAlignment="Center" />
-                            <TextBox x:Name="DestinationTextBox" Width="420" TextChanged="ActionField_Changed" />
+                            <TextBox x:Name="DestinationTextBox" Width="480" TextChanged="ActionField_Changed" />
                         </StackPanel>
                         <Button x:Name="InsertDestinationVariableButton" Content="Insert variable ▾" HorizontalAlignment="Left"
                                 Tag="Icons/icon-insert-variable.png" Style="{StaticResource IconButton}"
@@ -168,7 +168,7 @@
                     <StackPanel x:Name="ArgumentsPanel" Margin="0,0,0,10" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Arguments:" Width="90" VerticalAlignment="Center" />
-                            <TextBox x:Name="ArgumentsTextBox" Width="420" TextChanged="ActionField_Changed" />
+                            <TextBox x:Name="ArgumentsTextBox" Width="480" TextChanged="ActionField_Changed" />
                         </StackPanel>
                         <Button x:Name="InsertArgumentsVariableButton" Content="Insert variable ▾" HorizontalAlignment="Left"
                                 Tag="Icons/icon-insert-variable.png" Style="{StaticResource IconButton}"

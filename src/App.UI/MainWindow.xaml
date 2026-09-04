@@ -119,16 +119,29 @@
                         <Button Content="Run rule" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="RunRule_Click" />
                     </StackPanel>
 
-                    <ListBox x:Name="RulesList" Grid.Row="2" MouseDoubleClick="RulesList_MouseDoubleClick">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <CheckBox IsChecked="{Binding Enabled}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                    <TextBlock Text="{Binding Name}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <ListBox x:Name="RulesList" Grid.Column="0" Margin="0,0,8,0"
+                                 SelectionChanged="RulesList_SelectionChanged" MouseDoubleClick="RulesList_MouseDoubleClick">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox IsChecked="{Binding Enabled}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBlock Text="{Binding Name}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBox x:Name="RulePreviewText" Grid.Column="1" IsReadOnly="True" TextWrapping="NoWrap"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas" FontSize="11" Background="#FFF8F8F8"
+                                 Text="Selecteer een regel om te zien wat ze doet." />
+                    </Grid>
 
                     <TextBlock Grid.Row="3" Text="Resultaat:" FontWeight="Bold" Margin="0,8,0,4" />
 

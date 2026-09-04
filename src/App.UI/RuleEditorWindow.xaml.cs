@@ -24,17 +24,22 @@ namespace FldrSrtr
         private static readonly ActionType[] BasicActions = { ActionType.Move, ActionType.Copy, ActionType.Rename, ActionType.DeleteToRecycleBin };
         private static readonly ActionType[] AllActions = (ActionType[])Enum.GetValues(typeof(ActionType));
 
-        /// <summary>Insert Variable menu, grouped into submenus so the list stays manageable.</summary>
+        /// <summary>
+        /// Insert Variable menu, grouped into submenus so the list stays manageable. A null entry
+        /// renders as a separator (used in "File" to split general/Created/Modified properties).
+        /// </summary>
         private static readonly (string Group, string[] Tokens)[] VariableGroups =
         {
-            ("Algemeen", new[] { "{Counter:1:1}", "{Guid}", "{UnixTimestamp}", "{UnixTimestampMicro}", "{Random:0000}", "{RandomString:8}" }),
+            ("Algemeen", new[] { "{Counter:1:1}", "{Guid}", "{Random:0000}", "{RandomString:8}" }),
             ("File", new[]
             {
                 "{FileName}", "{OriginalName}", "{Extension}", "{OriginalExtension}", "{FullPath}", "{Directory}", "{FileSize}",
+                null,
                 "{CreatedYear}", "{CreatedMonth}", "{CreatedDay}", "{CreatedHour}", "{CreatedMinute}", "{CreatedSecond}", "{CreatedDate}", "{CreatedTime}",
+                null,
                 "{ModifiedYear}", "{ModifiedMonth}", "{ModifiedDay}", "{ModifiedHour}", "{ModifiedMinute}", "{ModifiedSecond}", "{ModifiedDate}", "{ModifiedTime}"
             }),
-            ("Datum (huidige datum)", new[] { "{Year}", "{Month}", "{Day}", "{Hour}", "{Minute}", "{Second}", "{Date}", "{Time}" })
+            ("Datum (huidige datum)", new[] { "{Year}", "{Month}", "{Day}", "{Hour}", "{Minute}", "{Second}", "{Date}", "{Time}", "{UnixTimestamp}", "{UnixTimestampMicro}" })
         };
 
         private static readonly Dictionary<ActionType, string> ActionHelp = new Dictionary<ActionType, string>
@@ -419,6 +424,12 @@ namespace FldrSrtr
                 var groupItem = new MenuItem { Header = group };
                 foreach (string token in tokens)
                 {
+                    if (token == null)
+                    {
+                        groupItem.Items.Add(new Separator());
+                        continue;
+                    }
+
                     var item = new MenuItem { Header = token };
                     item.Click += (s, e) => InsertAtCursor(target, token);
                     groupItem.Items.Add(item);

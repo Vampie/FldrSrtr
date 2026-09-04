@@ -90,6 +90,22 @@ namespace App.Core.Tests
             ConditionEvaluator.Evaluate(node, MakeFile("report.txt")).Should().BeFalse();
         }
 
+        [Theory]
+        [InlineData("pdf,docx,txt")]
+        [InlineData("pdf, docx, txt")]
+        [InlineData("pdf docx txt")]
+        [InlineData("pdf  docx   txt")]
+        [InlineData(" pdf , docx  txt ")]
+        public void Extension_IsOneOf_AcceptsCommaOrWhitespaceOrBothAsSeparator(string listValue)
+        {
+            var node = Leaf(ConditionField.Extension, ConditionOperator.IsOneOf, listValue);
+
+            ConditionEvaluator.Evaluate(node, MakeFile("report.pdf")).Should().BeTrue();
+            ConditionEvaluator.Evaluate(node, MakeFile("report.docx")).Should().BeTrue();
+            ConditionEvaluator.Evaluate(node, MakeFile("report.txt")).Should().BeTrue();
+            ConditionEvaluator.Evaluate(node, MakeFile("report.csv")).Should().BeFalse();
+        }
+
         [Fact]
         public void Size_GreaterThan_ComparesBytes()
         {

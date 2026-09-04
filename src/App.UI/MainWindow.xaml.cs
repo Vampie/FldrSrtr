@@ -85,6 +85,7 @@ namespace FldrSrtr
             RulesHeaderText.Text = folder != null ? $"Rules for: {folder.Path}" : "Selecteer een folder";
             _previewRows.Clear();
             SummaryText.Text = string.Empty;
+            RefreshRulePreview();
         }
 
         private void FoldersList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -214,6 +215,16 @@ namespace FldrSrtr
             }
         }
 
+        private void RulesList_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshRulePreview();
+
+        private void RefreshRulePreview()
+        {
+            Rule rule = SelectedRule;
+            RulePreviewText.Text = rule != null
+                ? RuleSummaryFormatter.Describe(rule)
+                : "Selecteer een regel om te zien wat ze doet.";
+        }
+
         private void AddRule_Click(object sender, RoutedEventArgs e)
         {
             WatchedFolder folder = SelectedFolder;
@@ -223,12 +234,13 @@ namespace FldrSrtr
                 return;
             }
 
-            var rule = new Rule();
+            var rule = new Rule { Name = string.Empty }; // force the editor's "give it a name" check for a brand new rule
             var editor = new RuleEditorWindow(rule) { Owner = this };
             if (editor.ShowDialog() == true)
             {
                 folder.Rules.Add(rule);
                 SaveConfig();
+                RulesList.SelectedItem = rule;
             }
         }
 
@@ -245,6 +257,7 @@ namespace FldrSrtr
             {
                 SaveConfig();
                 RulesList.Items.Refresh();
+                RefreshRulePreview();
             }
         }
 
@@ -259,6 +272,7 @@ namespace FldrSrtr
 
             folder.Rules.Remove(rule);
             SaveConfig();
+            RefreshRulePreview();
         }
 
         private void ExportRule_Click(object sender, RoutedEventArgs e)
