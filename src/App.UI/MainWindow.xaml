@@ -1,11 +1,67 @@
 <Window x:Class="FldrSrtr.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="FldrSrtr" Height="700" Width="1100"
+        Title="FldrSrtr" Height="740" Width="1150"
         Loaded="Window_Loaded">
     <TabControl Margin="8">
         <TabItem Header="Dashboard">
-            <TextBlock Text="Dashboard — statistieken volgen in Fase 4" Margin="16" />
+            <StackPanel Margin="16">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <TextBlock Text="Periode:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox x:Name="PeriodComboBox" Width="150" SelectionChanged="PeriodComboBox_SelectionChanged" />
+                </StackPanel>
+
+                <UniformGrid Columns="4" Rows="2">
+                    <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Bestanden verwerkt" FontWeight="Bold" />
+                            <TextBlock x:Name="StatFilesProcessed" FontSize="22" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Verplaatst" FontWeight="Bold" />
+                            <TextBlock x:Name="StatMoved" FontSize="22" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Gekopieerd" FontWeight="Bold" />
+                            <TextBlock x:Name="StatCopied" FontSize="22" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Hernoemd" FontWeight="Bold" />
+                            <TextBlock x:Name="StatRenamed" FontSize="22" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Verwijderd" FontWeight="Bold" />
+                            <TextBlock x:Name="StatDeleted" FontSize="22" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Fouten" FontWeight="Bold" />
+                            <TextBlock x:Name="StatErrors" FontSize="22" />
+                        </StackPanel>
+                    </Border>
+                    <Border Margin="4" Padding="12" BorderBrush="Gray" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Data verplaatst" FontWeight="Bold" />
+                            <TextBlock x:Name="StatDataMoved" FontSize="22" />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <TextBlock Text="Acties per regel:" FontWeight="Bold" Margin="0,20,0,4" />
+                <ItemsControl x:Name="StatsPerRuleList" />
+
+                <TextBlock Text="Acties per folder:" FontWeight="Bold" Margin="0,12,0,4" />
+                <ItemsControl x:Name="StatsPerFolderList" />
+            </StackPanel>
         </TabItem>
 
         <TabItem Header="Folders">
@@ -22,7 +78,10 @@
                         <Button Content="Remove folder" Margin="0,0,0,4" Click="RemoveFolder_Click" />
                         <Button Content="Open in Explorer" Margin="0,0,0,4" Click="OpenInExplorer_Click" />
                         <Button Content="Folder settings" Margin="0,0,0,4" Click="FolderSettings_Click" />
-                        <Button Content="Scan now" Click="ScanNow_Click" />
+                        <Button Content="Scan now" Margin="0,0,0,4" Click="ScanNow_Click" />
+                        <Separator Margin="0,4,0,4" />
+                        <Button Content="Export folder..." Margin="0,0,0,4" Click="ExportFolder_Click" />
+                        <Button Content="Import folder..." Click="ImportFolder_Click" />
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Folders" FontWeight="Bold" Margin="0,0,0,4" />
                     <ListBox x:Name="FoldersList" SelectionChanged="FoldersList_SelectionChanged">
@@ -54,6 +113,8 @@
                         <Button Content="+ Add rule" Margin="0,0,4,0" Click="AddRule_Click" />
                         <Button Content="Edit rule" Margin="0,0,4,0" Click="EditRule_Click" />
                         <Button Content="Delete rule" Margin="0,0,16,0" Click="DeleteRule_Click" />
+                        <Button Content="Export rule..." Margin="0,0,4,0" Click="ExportRule_Click" />
+                        <Button Content="Import rule..." Margin="0,0,16,0" Click="ImportRule_Click" />
                         <Button Content="Test Rule (dry run)" Margin="0,0,4,0" Click="DryRun_Click" />
                         <Button Content="Run rule" Click="RunRule_Click" />
                     </StackPanel>
@@ -93,7 +154,18 @@
 
         <TabItem Header="Activity">
             <DockPanel Margin="8">
-                <Button DockPanel.Dock="Top" Content="Refresh" HorizontalAlignment="Left" Margin="0,0,0,8" Click="RefreshActivity_Click" />
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBlock Text="Zoeken:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBox x:Name="ActivitySearchBox" Width="160" Margin="0,0,12,0" TextChanged="ActivityFilter_Changed" />
+                    <TextBlock Text="Status:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox x:Name="ActivityStatusFilter" Width="110" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
+                    <TextBlock Text="Regel:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox x:Name="ActivityRuleFilter" Width="140" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
+                    <TextBlock Text="Folder:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <ComboBox x:Name="ActivityFolderFilter" Width="160" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
+                    <Button Content="Refresh" Margin="0,0,8,0" Click="RefreshActivity_Click" />
+                    <Button Content="Undo last action" Click="UndoLastAction_Click" />
+                </StackPanel>
                 <DataGrid x:Name="ActivityGrid" AutoGenerateColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tijd (UTC)" Binding="{Binding TimestampUtc}" Width="150" />
@@ -109,7 +181,64 @@
         </TabItem>
 
         <TabItem Header="Settings">
-            <TextBlock Text="Settings — instellingen volgen in latere fases" Margin="16" />
+            <StackPanel Margin="16">
+                <TextBlock Text="Veiligheid" FontWeight="Bold" Margin="0,0,0,8" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <TextBlock Text="Confirmation threshold:" Width="200" VerticalAlignment="Center" />
+                    <TextBox x:Name="ConfirmationThresholdTextBox" Width="80" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="Max files per run:" Width="200" VerticalAlignment="Center" />
+                    <TextBox x:Name="MaxFilesPerRunTextBox" Width="80" />
+                </StackPanel>
+
+                <TextBlock Text="Extra beschermde mappen (naast C:\Windows, Program Files, ProgramData):" Margin="0,0,0,4" />
+                <DockPanel Margin="0,0,0,12" Height="110">
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBox x:Name="NewProtectedFolderTextBox" Width="300" Margin="0,0,4,0" />
+                        <Button Content="Browse..." Margin="0,0,4,0" Click="BrowseProtectedFolder_Click" />
+                        <Button Content="+ Toevoegen" Click="AddProtectedFolder_Click" />
+                    </StackPanel>
+                    <ListBox x:Name="ProtectedFoldersListBox">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}" Width="300" />
+                                    <Button Content="Remove" Click="RemoveProtectedFolder_Click" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+
+                <TextBlock Text="Beschermde extensies (bv. exe, dll):" Margin="0,0,0,4" />
+                <DockPanel Margin="0,0,0,12" Height="110">
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBox x:Name="NewProtectedExtensionTextBox" Width="150" Margin="0,0,4,0" />
+                        <Button Content="+ Toevoegen" Click="AddProtectedExtension_Click" />
+                    </StackPanel>
+                    <ListBox x:Name="ProtectedExtensionsListBox">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}" Width="150" />
+                                    <Button Content="Remove" Click="RemoveProtectedExtension_Click" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <Button Content="Save settings" Click="SaveSettings_Click" />
+                </StackPanel>
+
+                <TextBlock Text="Configuratie" FontWeight="Bold" Margin="0,0,0,8" />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Export volledige configuratie..." Margin="0,0,8,0" Click="ExportConfig_Click" />
+                    <Button Content="Import volledige configuratie..." Click="ImportConfig_Click" />
+                </StackPanel>
+            </StackPanel>
         </TabItem>
     </TabControl>
 </Window>

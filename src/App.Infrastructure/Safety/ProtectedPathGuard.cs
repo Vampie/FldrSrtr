@@ -6,8 +6,9 @@ using System.Linq;
 namespace App.Infrastructure.Safety
 {
     /// <summary>
-    /// Hardcoded protected roots per §3.8. User-configurable extra protected folders/extensions
-    /// arrive in Fase 4 alongside the rest of the settings UI.
+    /// Hardcoded protected roots per §3.8, plus user-configurable extra protected folders and
+    /// extensions from AppSettings (Fase 4 Settings screen). The hardcoded roots always apply on
+    /// top of whatever the user adds — configuration only widens protection, never narrows it.
     /// </summary>
     public class ProtectedPathGuard
     {
@@ -20,21 +21,37 @@ namespace App.Infrastructure.Safety
         };
 
         private readonly List<string> _protectedRoots;
+        private readonly HashSet<string> _protectedExtensions;
 
-        public ProtectedPathGuard(IEnumerable<string> extraProtectedRoots = null)
+        public ProtectedPathGuard(IEnumerable<string> extraProtectedRoots = null, IEnumerable<string> protectedExtensions = null)
         {
             _protectedRoots = DefaultProtectedRoots.ToList();
             if (extraProtectedRoots != null)
             {
                 _protectedRoots.AddRange(extraProtectedRoots);
             }
+
+            _protectedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (protectedExtensions != null)
+            {
+                foreach (string ext in protectedExtensions)
+                {
+                    _protectedExtensions.Add(ext.TrimStart('.'));
+                }
+            }
         }
 
         public bool IsProtected(string path)
         {
             string full = Path.GetFullPath(path);
-            return _protectedRoots.Any(root =>
+
+            bool underProtectedRoot = _protectedRoots.Any(root =>
                 full.StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase));
+
+            string extension = Path.GetExtension(full).TrimStart('.');
+            bool protectedExtension = extension.Length > 0 && _protectedExtensions.Contains(extension);
+
+            return underProtectedRoot || protectedExtension;
         }
     }
 }

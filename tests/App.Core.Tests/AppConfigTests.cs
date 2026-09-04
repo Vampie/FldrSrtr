@@ -7,11 +7,11 @@ namespace App.Core.Tests
     public class AppConfigTests
     {
         [Fact]
-        public void CreateDefault_SetsSchemaVersion1()
+        public void CreateDefault_SetsCurrentSchemaVersion()
         {
             AppConfig config = AppConfig.CreateDefault();
 
-            config.SchemaVersion.Should().Be(1);
+            config.SchemaVersion.Should().Be(SchemaVersions.Current);
         }
     }
 }

@@ -30,5 +30,15 @@ namespace App.Infrastructure.Tests
             guard.IsProtected(@"D:\Important\file.txt").Should().BeTrue();
             guard.IsProtected(@"D:\Other\file.txt").Should().BeFalse();
         }
+
+        [Fact]
+        public void IsProtected_HonorsConfiguredExtensions_RegardlessOfFolder()
+        {
+            var guard = new ProtectedPathGuard(protectedExtensions: new[] { "exe", ".dll" });
+
+            guard.IsProtected(@"C:\Users\Someone\Downloads\tool.exe").Should().BeTrue();
+            guard.IsProtected(@"C:\Users\Someone\Downloads\lib.dll").Should().BeTrue();
+            guard.IsProtected(@"C:\Users\Someone\Downloads\notes.txt").Should().BeFalse();
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace App.Infrastructure.Activity
 {
     public class ActivityLogEntry
     {
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
         public string FolderPath { get; set; }
         public string RuleName { get; set; }
@@ -16,5 +17,13 @@ namespace App.Infrastructure.Activity
         public string Message { get; set; }
         public string OriginalPath { get; set; }
         public string DestinationPath { get; set; }
+        public long FileSizeBytes { get; set; }
+
+        /// <summary>
+        /// Set on the log entry created by "Undo last action" — points at the Id of the entry it
+        /// reversed. The log is append-only, so undo state is derived by scanning for this
+        /// rather than mutating the original entry in place.
+        /// </summary>
+        public string UndoOfId { get; set; }
     }
 }

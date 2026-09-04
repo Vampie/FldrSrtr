@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using App.Core.Configuration;
 using App.Core.Execution;
 using App.Core.Model;
@@ -23,10 +24,12 @@ namespace FldrSrtr
         private readonly IFileSystem _fileSystem = new FileSystem();
         private readonly ActivityLogger _activityLogger = new ActivityLogger();
         private readonly NotificationService _notificationService = new NotificationService();
+        private readonly ImportExportService _importExportService = new ImportExportService();
         private readonly ObservableCollection<PreviewRow> _previewRows = new ObservableCollection<PreviewRow>();
 
         private AppConfig _config;
         private FolderScanner _scanner;
+        private List<ActivityLogEntry> _allActivityEntries = new List<ActivityLogEntry>();
 
         public MainWindow()
         {
@@ -39,6 +42,11 @@ namespace FldrSrtr
             _config = _configService.LoadOrCreateDefault();
             _scanner = new FolderScanner(_fileSystem);
             FoldersList.ItemsSource = _config.Folders;
+
+            PeriodComboBox.ItemsSource = Enum.GetValues(typeof(StatisticsPeriod));
+            PeriodComboBox.SelectedItem = StatisticsPeriod.Last7Days;
+
+            LoadSettingsIntoUi();
             RefreshActivity();
         }
 
@@ -47,7 +55,12 @@ namespace FldrSrtr
 
         private void SaveConfig() => _configService.Save(_config);
 
-        private void FoldersList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private ProtectedPathGuard BuildGuard() =>
+            new ProtectedPathGuard(_config.Settings.ProtectedFolders, _config.Settings.ProtectedExtensions);
+
+        // ===================== Folders =====================
+
+        private void FoldersList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             WatchedFolder folder = SelectedFolder;
             RulesList.ItemsSource = folder?.Rules;
@@ -129,6 +142,46 @@ namespace FldrSrtr
             }
         }
 
+        private void ExportFolder_Click(object sender, RoutedEventArgs e)
+        {
+            WatchedFolder folder = SelectedFolder;
+            if (folder == null)
+            {
+                MessageBox.Show(this, "Selecteer eerst een folder.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json", FileName = "folder-export.json" })
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    _importExportService.ExportFolder(folder, dialog.FileName);
+                }
+            }
+        }
+
+        private void ImportFolder_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = "JSON (*.json)|*.json" })
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    try
+                    {
+                        WatchedFolder imported = _importExportService.ImportFolder(dialog.FileName);
+                        _config.Folders.Add(imported);
+                        SaveConfig();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(this, $"Import mislukt: {ex.Message}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // ===================== Rules =====================
+
         private void AddRule_Click(object sender, RoutedEventArgs e)
         {
             WatchedFolder folder = SelectedFolder;
@@ -176,13 +229,83 @@ namespace FldrSrtr
             SaveConfig();
         }
 
+        private void ExportRule_Click(object sender, RoutedEventArgs e)
+        {
+            Rule rule = SelectedRule;
+            if (rule == null)
+            {
+                MessageBox.Show(this, "Selecteer eerst een regel.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json", FileName = "rule-export.json" })
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    _importExportService.ExportRule(rule, dialog.FileName);
+                }
+            }
+        }
+
+        private void ImportRule_Click(object sender, RoutedEventArgs e)
+        {
+            WatchedFolder folder = SelectedFolder;
+            if (folder == null)
+            {
+                MessageBox.Show(this, "Selecteer eerst een folder.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = "JSON (*.json)|*.json" })
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    try
+                    {
+                        Rule imported = _importExportService.ImportRule(dialog.FileName);
+                        folder.Rules.Add(imported);
+                        SaveConfig();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(this, $"Import mislukt: {ex.Message}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // ===================== Dry run / run =====================
+
         private void DryRun_Click(object sender, RoutedEventArgs e) => RunSelectedRule(dryRun: true);
 
         private void RunRule_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult confirm = MessageBox.Show(this,
-                "Deze regel echt uitvoeren? Dit wijzigt bestanden op schijf.",
-                "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            WatchedFolder folder = SelectedFolder;
+            Rule rule = SelectedRule;
+            if (folder == null || rule == null)
+            {
+                MessageBox.Show(this, "Selecteer een folder en een regel.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var files = _scanner.Scan(folder);
+            var engine = new RuleEngine(new FileSystemFileOperations(_fileSystem, BuildGuard()));
+            int matchCount = engine.GetMatches(rule, files).Count();
+
+            if (matchCount > _config.Settings.MaxFilesPerRun)
+            {
+                MessageBox.Show(this,
+                    $"Deze regel matcht {matchCount} bestanden — dat is meer dan de ingestelde limiet van {_config.Settings.MaxFilesPerRun}.\n" +
+                    "Verhoog de limiet in Settings als dit verwacht is, of verfijn de regel.",
+                    "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string question = matchCount > _config.Settings.ConfirmationThreshold
+                ? $"Deze regel matcht {matchCount} bestanden. Dit wijzigt bestanden op schijf. Doorgaan?"
+                : "Deze regel echt uitvoeren? Dit wijzigt bestanden op schijf.";
+
+            MessageBoxResult confirm = MessageBox.Show(this, question, "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm == MessageBoxResult.Yes)
             {
                 RunSelectedRule(dryRun: false);
@@ -200,7 +323,7 @@ namespace FldrSrtr
             }
 
             var files = _scanner.Scan(folder);
-            var fileOps = new FileSystemFileOperations(_fileSystem, new ProtectedPathGuard());
+            var fileOps = new FileSystemFileOperations(_fileSystem, BuildGuard());
             var engine = new RuleEngine(fileOps, new WpfConflictPrompt(this));
             List<ExecutionResult> executionResults = engine.ExecuteRule(rule, files, dryRun);
 
@@ -234,7 +357,8 @@ namespace FldrSrtr
                         Status = plan.Skipped ? "WARNING" : (result.Success ? "SUCCESS" : "ERROR"),
                         Message = message,
                         OriginalPath = plan.OriginalPath,
-                        DestinationPath = plan.ResolvedDestinationPath
+                        DestinationPath = plan.ResolvedDestinationPath,
+                        FileSizeBytes = plan.File.SizeBytes
                     });
                 }
 
@@ -250,15 +374,288 @@ namespace FldrSrtr
             if (!dryRun)
             {
                 RefreshActivity();
+                RefreshDashboard();
                 _notificationService.ShowBalloonTip("FldrSrtr", $"'{rule.Name}': {SummaryText.Text}");
             }
         }
+
+        // ===================== Activity =====================
 
         private void RefreshActivity_Click(object sender, RoutedEventArgs e) => RefreshActivity();
 
         private void RefreshActivity()
         {
-            ActivityGrid.ItemsSource = _activityLogger.ReadAll().OrderByDescending(entry => entry.TimestampUtc).ToList();
+            _allActivityEntries = _activityLogger.ReadAll().OrderByDescending(entry => entry.TimestampUtc).ToList();
+
+            string previousStatus = ActivityStatusFilter.SelectedItem as string;
+            string previousRule = ActivityRuleFilter.SelectedItem as string;
+            string previousFolder = ActivityFolderFilter.SelectedItem as string;
+
+            ActivityStatusFilter.ItemsSource = new[] { "(alle)" }.Concat(_allActivityEntries.Select(e => e.Status).Distinct().OrderBy(s => s)).ToList();
+            ActivityRuleFilter.ItemsSource = new[] { "(alle)" }.Concat(_allActivityEntries.Select(e => e.RuleName).Where(r => r != null).Distinct().OrderBy(r => r)).ToList();
+            ActivityFolderFilter.ItemsSource = new[] { "(alle)" }.Concat(_allActivityEntries.Select(e => e.FolderPath).Where(f => f != null).Distinct().OrderBy(f => f)).ToList();
+
+            ActivityStatusFilter.SelectedItem = previousStatus ?? "(alle)";
+            ActivityRuleFilter.SelectedItem = previousRule ?? "(alle)";
+            ActivityFolderFilter.SelectedItem = previousFolder ?? "(alle)";
+
+            ApplyActivityFilter();
+            RefreshDashboard();
+        }
+
+        private void ActivityFilter_Changed(object sender, EventArgs e) => ApplyActivityFilter();
+
+        private void ApplyActivityFilter()
+        {
+            if (ActivityGrid == null || _allActivityEntries == null)
+            {
+                return;
+            }
+
+            IEnumerable<ActivityLogEntry> filtered = _allActivityEntries;
+
+            string search = ActivitySearchBox?.Text?.Trim();
+            if (!string.IsNullOrEmpty(search))
+            {
+                filtered = filtered.Where(e =>
+                    (e.FileName?.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (e.RuleName?.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (e.FolderPath?.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0));
+            }
+
+            if (ActivityStatusFilter.SelectedItem is string status && status != "(alle)")
+            {
+                filtered = filtered.Where(e => e.Status == status);
+            }
+            if (ActivityRuleFilter.SelectedItem is string ruleName && ruleName != "(alle)")
+            {
+                filtered = filtered.Where(e => e.RuleName == ruleName);
+            }
+            if (ActivityFolderFilter.SelectedItem is string folderPath && folderPath != "(alle)")
+            {
+                filtered = filtered.Where(e => e.FolderPath == folderPath);
+            }
+
+            ActivityGrid.ItemsSource = filtered.ToList();
+        }
+
+        private void UndoLastAction_Click(object sender, RoutedEventArgs e)
+        {
+            var undoneIds = new HashSet<string>(_allActivityEntries.Where(x => x.UndoOfId != null).Select(x => x.UndoOfId));
+
+            ActivityLogEntry target = _allActivityEntries.FirstOrDefault(entry =>
+                entry.Status == "SUCCESS" &&
+                UndoService.SupportsUndo(ParseActionType(entry.Action)) &&
+                !undoneIds.Contains(entry.Id));
+
+            if (target == null)
+            {
+                MessageBox.Show(this, "Geen ongedaan te maken actie gevonden.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            MessageBoxResult confirm = MessageBox.Show(this,
+                $"Laatste actie ongedaan maken?\n\n{target.Action}: {target.OriginalPath} -> {target.DestinationPath}",
+                "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            var undoService = new UndoService(new FileSystemFileOperations(_fileSystem, BuildGuard()));
+            UndoResult result = undoService.Undo(new UndoableAction
+            {
+                ActionType = ParseActionType(target.Action),
+                OriginalPath = target.OriginalPath,
+                NewPath = target.DestinationPath
+            });
+
+            _activityLogger.Append(new ActivityLogEntry
+            {
+                FolderPath = target.FolderPath,
+                RuleName = target.RuleName,
+                FileName = target.FileName,
+                Action = "Undo",
+                Status = result.Success ? "SUCCESS" : "ERROR",
+                Message = result.Success ? $"Undo of {target.Action}" : result.ErrorMessage,
+                OriginalPath = target.DestinationPath,
+                DestinationPath = target.OriginalPath,
+                UndoOfId = target.Id
+            });
+
+            RefreshActivity();
+
+            if (!result.Success)
+            {
+                MessageBox.Show(this, $"Ongedaan maken mislukt: {result.ErrorMessage}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private static ActionType ParseActionType(string action) =>
+            Enum.TryParse(action, out ActionType type) ? type : (ActionType)(-1);
+
+        // ===================== Dashboard =====================
+
+        private void PeriodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshDashboard();
+
+        private void RefreshDashboard()
+        {
+            if (PeriodComboBox?.SelectedItem == null)
+            {
+                return;
+            }
+
+            var period = (StatisticsPeriod)PeriodComboBox.SelectedItem;
+            ActivityStatistics stats = StatisticsAggregator.Aggregate(_allActivityEntries, period);
+
+            StatFilesProcessed.Text = stats.FilesProcessed.ToString();
+            StatMoved.Text = stats.Moved.ToString();
+            StatCopied.Text = stats.Copied.ToString();
+            StatRenamed.Text = stats.Renamed.ToString();
+            StatDeleted.Text = stats.Deleted.ToString();
+            StatErrors.Text = stats.Errors.ToString();
+            StatDataMoved.Text = FormatBytes(stats.DataMovedBytes);
+
+            StatsPerRuleList.ItemsSource = stats.ActionsPerRule.OrderByDescending(kv => kv.Value)
+                .Select(kv => $"{kv.Key}: {kv.Value}").ToList();
+            StatsPerFolderList.ItemsSource = stats.ActionsPerFolder.OrderByDescending(kv => kv.Value)
+                .Select(kv => $"{kv.Key}: {kv.Value}").ToList();
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+            double value = bytes;
+            int unitIndex = 0;
+            while (value >= 1024 && unitIndex < units.Length - 1)
+            {
+                value /= 1024;
+                unitIndex++;
+            }
+            return $"{value:0.#} {units[unitIndex]}";
+        }
+
+        // ===================== Settings =====================
+
+        private void LoadSettingsIntoUi()
+        {
+            ConfirmationThresholdTextBox.Text = _config.Settings.ConfirmationThreshold.ToString();
+            MaxFilesPerRunTextBox.Text = _config.Settings.MaxFilesPerRun.ToString();
+            ProtectedFoldersListBox.ItemsSource = _config.Settings.ProtectedFolders;
+            ProtectedExtensionsListBox.ItemsSource = _config.Settings.ProtectedExtensions;
+        }
+
+        private void SaveSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (!int.TryParse(ConfirmationThresholdTextBox.Text, out int threshold) || threshold < 0)
+            {
+                MessageBox.Show(this, "Confirmation threshold moet een positief getal zijn.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (!int.TryParse(MaxFilesPerRunTextBox.Text, out int maxFiles) || maxFiles < 1)
+            {
+                MessageBox.Show(this, "Max files per run moet minstens 1 zijn.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _config.Settings.ConfirmationThreshold = threshold;
+            _config.Settings.MaxFilesPerRun = maxFiles;
+            SaveConfig();
+            MessageBox.Show(this, "Instellingen opgeslagen.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BrowseProtectedFolder_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    NewProtectedFolderTextBox.Text = dialog.SelectedPath;
+                }
+            }
+        }
+
+        private void AddProtectedFolder_Click(object sender, RoutedEventArgs e)
+        {
+            string path = NewProtectedFolderTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+            _config.Settings.ProtectedFolders.Add(path);
+            NewProtectedFolderTextBox.Clear();
+            SaveConfig();
+        }
+
+        private void RemoveProtectedFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (((FrameworkElement)sender).DataContext is string path)
+            {
+                _config.Settings.ProtectedFolders.Remove(path);
+                SaveConfig();
+            }
+        }
+
+        private void AddProtectedExtension_Click(object sender, RoutedEventArgs e)
+        {
+            string ext = NewProtectedExtensionTextBox.Text.Trim().TrimStart('.');
+            if (string.IsNullOrEmpty(ext))
+            {
+                return;
+            }
+            _config.Settings.ProtectedExtensions.Add(ext);
+            NewProtectedExtensionTextBox.Clear();
+            SaveConfig();
+        }
+
+        private void RemoveProtectedExtension_Click(object sender, RoutedEventArgs e)
+        {
+            if (((FrameworkElement)sender).DataContext is string ext)
+            {
+                _config.Settings.ProtectedExtensions.Remove(ext);
+                SaveConfig();
+            }
+        }
+
+        private void ExportConfig_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json", FileName = "fldrsrtr-config-export.json" })
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    _importExportService.ExportConfig(_config, dialog.FileName);
+                }
+            }
+        }
+
+        private void ImportConfig_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult confirm = MessageBox.Show(this,
+                "Dit vervangt de volledige huidige configuratie (folders, regels en instellingen). Doorgaan?",
+                "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (confirm != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            using (var dialog = new System.Windows.Forms.OpenFileDialog { Filter = "JSON (*.json)|*.json" })
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    try
+                    {
+                        _config = _importExportService.ImportConfig(dialog.FileName);
+                        SaveConfig();
+                        FoldersList.ItemsSource = _config.Folders;
+                        LoadSettingsIntoUi();
+                        RefreshActivity();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(this, $"Import mislukt: {ex.Message}", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
         }
     }
 }
