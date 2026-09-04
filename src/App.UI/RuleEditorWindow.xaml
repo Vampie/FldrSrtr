@@ -86,9 +86,9 @@
                     <ComboBox x:Name="GroupLogicComboBox" Width="120" HorizontalAlignment="Left"
                               SelectionChanged="GroupLogicComboBox_SelectionChanged" />
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                        <Button Content="+ Add condition" Margin="0,0,4,0" Click="AddConditionLeaf_Click" />
-                        <Button Content="+ Add group" Margin="0,0,4,0" Click="AddConditionGroup_Click" />
-                        <Button x:Name="RemoveGroupButton" Content="Remove this group" Click="RemoveSelectedNode_Click" />
+                        <Button Content="Add condition" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="AddConditionLeaf_Click" />
+                        <Button Content="Add group" Tag="Icons/icon-add-folder.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="AddConditionGroup_Click" />
+                        <Button x:Name="RemoveGroupButton" Content="Remove this group" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveSelectedNode_Click" />
                     </StackPanel>
                 </StackPanel>
 
@@ -114,7 +114,7 @@
                     </StackPanel>
                     <CheckBox x:Name="CaseSensitiveCheckBox" Content="Case-sensitive" Margin="70,0,0,10" Checked="LeafField_Changed" Unchecked="LeafField_Changed" />
                     <TextBlock x:Name="DuplicateHintText" Text="Tip: bij Field 'Duplicate' is Value 'true' of 'false'." Foreground="Gray" Margin="70,0,0,10" Visibility="Collapsed" />
-                    <Button Content="Remove this condition" HorizontalAlignment="Left" Click="RemoveSelectedNode_Click" />
+                    <Button Content="Remove this condition" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" HorizontalAlignment="Left" Click="RemoveSelectedNode_Click" />
                 </StackPanel>
             </StackPanel>
         </Grid>
@@ -129,10 +129,10 @@
 
             <DockPanel Grid.Column="0" Margin="0,0,8,0">
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
-                    <Button Content="+ Add" Margin="0,0,4,0" Click="AddAction_Click" />
+                    <Button Content="Add" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="AddAction_Click" />
                     <Button Content="Up" Margin="0,0,4,0" Click="MoveActionUp_Click" />
                     <Button Content="Down" Margin="0,0,4,0" Click="MoveActionDown_Click" />
-                    <Button Content="Remove" Click="RemoveAction_Click" />
+                    <Button Content="Remove" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveAction_Click" />
                 </StackPanel>
                 <ListBox x:Name="ActionsList" SelectionChanged="ActionsList_SelectionChanged">
                     <ListBox.ItemTemplate>
@@ -159,6 +159,7 @@
                             <TextBox x:Name="DestinationTextBox" Width="420" TextChanged="ActionField_Changed" />
                         </StackPanel>
                         <Button x:Name="InsertDestinationVariableButton" Content="Insert variable ▾" HorizontalAlignment="Left"
+                                Tag="Icons/icon-insert-variable.png" Style="{StaticResource IconButton}"
                                 Margin="90,4,0,0" Click="InsertDestinationVariable_Click" />
                     </StackPanel>
 
@@ -168,6 +169,7 @@
                             <TextBox x:Name="ArgumentsTextBox" Width="420" TextChanged="ActionField_Changed" />
                         </StackPanel>
                         <Button x:Name="InsertArgumentsVariableButton" Content="Insert variable ▾" HorizontalAlignment="Left"
+                                Tag="Icons/icon-insert-variable.png" Style="{StaticResource IconButton}"
                                 Margin="90,4,0,0" Click="InsertArgumentsVariable_Click" />
                     </StackPanel>
 
@@ -180,8 +182,8 @@
         </Grid>
 
         <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancel" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
-            <Button Content="Save" Width="90" Click="Save_Click" IsDefault="True" />
+            <Button Content="Cancel" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
+            <Button Content="Save" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Width="90" Click="Save_Click" IsDefault="True" />
         </StackPanel>
     </Grid>
 </Window>

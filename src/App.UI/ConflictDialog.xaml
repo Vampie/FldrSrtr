@@ -6,9 +6,9 @@
     <StackPanel Margin="16">
         <TextBlock x:Name="MessageText" TextWrapping="Wrap" Margin="0,0,0,16" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Skip" Width="90" Margin="0,0,8,0" Click="Skip_Click" />
-            <Button Content="Overwrite" Width="90" Margin="0,0,8,0" Click="Overwrite_Click" />
-            <Button Content="Rename" Width="90" Click="Rename_Click" IsDefault="True" />
+            <Button Content="Skip" Tag="Icons/icon-skip.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Skip_Click" />
+            <Button Content="Overwrite" Tag="Icons/icon-overwrite.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Overwrite_Click" />
+            <Button Content="Rename" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Width="90" Click="Rename_Click" IsDefault="True" />
         </StackPanel>
     </StackPanel>
 </Window>

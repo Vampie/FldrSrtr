@@ -20,6 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Button icons, embedded into the exe so the portable release stays a single file — no
+         loose asset folder to ship. Source originals live in Resources/icons outside the repo. -->
+    <Resource Include="Icons\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\App.Core\App.Core.csproj" />
     <ProjectReference Include="..\App.Infrastructure\App.Infrastructure.csproj" />
   </ItemGroup>

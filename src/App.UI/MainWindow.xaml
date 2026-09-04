@@ -74,14 +74,14 @@
                 <!-- Folders -->
                 <DockPanel Grid.Column="0" Margin="0,0,8,0">
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Margin="0,8,0,0">
-                        <Button Content="+ Add folder" Margin="0,0,0,4" Click="AddFolder_Click" />
-                        <Button Content="Remove folder" Margin="0,0,0,4" Click="RemoveFolder_Click" />
-                        <Button Content="Open in Explorer" Margin="0,0,0,4" Click="OpenInExplorer_Click" />
-                        <Button Content="Folder settings" Margin="0,0,0,4" Click="FolderSettings_Click" />
-                        <Button Content="Scan now" Margin="0,0,0,4" Click="ScanNow_Click" />
+                        <Button Content="Add folder" Tag="Icons/icon-add-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="AddFolder_Click" />
+                        <Button Content="Remove folder" Tag="Icons/icon-remove-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="RemoveFolder_Click" />
+                        <Button Content="Open in Explorer" Tag="Icons/icon-open-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="OpenInExplorer_Click" />
+                        <Button Content="Folder settings" Tag="Icons/icon-settings.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="FolderSettings_Click" />
+                        <Button Content="Scan now" Tag="Icons/icon-scan.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="ScanNow_Click" />
                         <Separator Margin="0,4,0,4" />
-                        <Button Content="Export folder..." Margin="0,0,0,4" Click="ExportFolder_Click" />
-                        <Button Content="Import folder..." Click="ImportFolder_Click" />
+                        <Button Content="Export folder..." Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="ExportFolder_Click" />
+                        <Button Content="Import folder..." Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportFolder_Click" />
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Folders" FontWeight="Bold" Margin="0,0,0,4" />
                     <ListBox x:Name="FoldersList" SelectionChanged="FoldersList_SelectionChanged" MouseDoubleClick="FoldersList_MouseDoubleClick">
@@ -110,13 +110,13 @@
                     <TextBlock x:Name="RulesHeaderText" Grid.Row="0" FontWeight="Bold" Text="Selecteer een folder" Margin="0,0,0,4" />
 
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
-                        <Button Content="+ Add rule" Margin="0,0,4,0" Click="AddRule_Click" />
-                        <Button Content="Edit rule" Margin="0,0,4,0" Click="EditRule_Click" />
-                        <Button Content="Delete rule" Margin="0,0,16,0" Click="DeleteRule_Click" />
-                        <Button Content="Export rule..." Margin="0,0,4,0" Click="ExportRule_Click" />
-                        <Button Content="Import rule..." Margin="0,0,16,0" Click="ImportRule_Click" />
-                        <Button Content="Test Rule (dry run)" Margin="0,0,4,0" Click="DryRun_Click" />
-                        <Button Content="Run rule" Click="RunRule_Click" />
+                        <Button Content="Add rule" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="AddRule_Click" />
+                        <Button Content="Edit rule" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="EditRule_Click" />
+                        <Button Content="Delete rule" Tag="Icons/icon-delete.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="DeleteRule_Click" />
+                        <Button Content="Export rule..." Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="ExportRule_Click" />
+                        <Button Content="Import rule..." Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="ImportRule_Click" />
+                        <Button Content="Test Rule (dry run)" Tag="Icons/icon-inspect.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="DryRun_Click" />
+                        <Button Content="Run rule" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="RunRule_Click" />
                     </StackPanel>
 
                     <ListBox x:Name="RulesList" Grid.Row="2" MouseDoubleClick="RulesList_MouseDoubleClick">
@@ -178,8 +178,8 @@
                     <ComboBox x:Name="ActivityRuleFilter" Width="140" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
                     <TextBlock Text="Folder:" VerticalAlignment="Center" Margin="0,0,4,0" />
                     <ComboBox x:Name="ActivityFolderFilter" Width="160" Margin="0,0,12,0" SelectionChanged="ActivityFilter_Changed" />
-                    <Button Content="Refresh" Margin="0,0,8,0" Click="RefreshActivity_Click" />
-                    <Button Content="Undo last action" Click="UndoLastAction_Click" />
+                    <Button Content="Refresh" Tag="Icons/icon-refresh.png" Style="{StaticResource IconButton}" Margin="0,0,8,0" Click="RefreshActivity_Click" />
+                    <Button Content="Undo last action" Tag="Icons/icon-undo.png" Style="{StaticResource IconButton}" Click="UndoLastAction_Click" />
                 </StackPanel>
                 <DataGrid x:Name="ActivityGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           HorizontalScrollBarVisibility="Auto" MouseDoubleClick="ActivityGrid_MouseDoubleClick">
@@ -219,15 +219,15 @@
                 <DockPanel Margin="0,0,0,12" Height="110">
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
                         <TextBox x:Name="NewProtectedFolderTextBox" Width="300" Margin="0,0,4,0" />
-                        <Button Content="Browse..." Margin="0,0,4,0" Click="BrowseProtectedFolder_Click" />
-                        <Button Content="+ Toevoegen" Click="AddProtectedFolder_Click" />
+                        <Button Content="Browse..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="BrowseProtectedFolder_Click" />
+                        <Button Content="Toevoegen" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedFolder_Click" />
                     </StackPanel>
                     <ListBox x:Name="ProtectedFoldersListBox">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding}" Width="300" />
-                                    <Button Content="Remove" Click="RemoveProtectedFolder_Click" />
+                                    <Button Content="Remove" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveProtectedFolder_Click" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -238,14 +238,14 @@
                 <DockPanel Margin="0,0,0,12" Height="110">
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
                         <TextBox x:Name="NewProtectedExtensionTextBox" Width="150" Margin="0,0,4,0" />
-                        <Button Content="+ Toevoegen" Click="AddProtectedExtension_Click" />
+                        <Button Content="Toevoegen" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedExtension_Click" />
                     </StackPanel>
                     <ListBox x:Name="ProtectedExtensionsListBox">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding}" Width="150" />
-                                    <Button Content="Remove" Click="RemoveProtectedExtension_Click" />
+                                    <Button Content="Remove" Tag="Icons/icon-remove.png" Style="{StaticResource IconButton}" Click="RemoveProtectedExtension_Click" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -253,13 +253,13 @@
                 </DockPanel>
 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                    <Button Content="Save settings" Click="SaveSettings_Click" />
+                    <Button Content="Save settings" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Click="SaveSettings_Click" />
                 </StackPanel>
 
                 <TextBlock Text="Configuratie" FontWeight="Bold" Margin="0,0,0,8" />
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="Export volledige configuratie..." Margin="0,0,8,0" Click="ExportConfig_Click" />
-                    <Button Content="Import volledige configuratie..." Click="ImportConfig_Click" />
+                    <Button Content="Export volledige configuratie..." Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,8,0" Click="ExportConfig_Click" />
+                    <Button Content="Import volledige configuratie..." Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportConfig_Click" />
                 </StackPanel>
             </StackPanel>
         </TabItem>
