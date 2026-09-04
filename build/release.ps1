@@ -71,19 +71,19 @@ Get-ChildItem -Path $PublishSrc -File |
 
 Copy-Item -Path $IconPng -Destination $StagingDir -Force
 
-Write-Host "-- Zippen naar $ZipPath --"
-$ReleaseDir = Split-Path -Parent $ZipPath
-if (-not (Test-Path $ReleaseDir)) {
-    New-Item -ItemType Directory -Path $ReleaseDir -Force | Out-Null
-}
-if (Test-Path $ZipPath) {
-    Remove-Item $ZipPath -Force
-}
-Compress-Archive -Path (Join-Path $StagingDir "*") -DestinationPath $ZipPath
+# Write-Host "-- Zippen naar $ZipPath --"
+# $ReleaseDir = Split-Path -Parent $ZipPath
+# if (-not (Test-Path $ReleaseDir)) {
+    # New-Item -ItemType Directory -Path $ReleaseDir -Force | Out-Null
+# }
+# if (Test-Path $ZipPath) {
+    # Remove-Item $ZipPath -Force
+# }
+# Compress-Archive -Path (Join-Path $StagingDir "*") -DestinationPath $ZipPath
 
-Write-Host "-- SHA-256 checksum --"
-$hash = Get-FileHash -Path $ZipPath -Algorithm SHA256
-"$($hash.Hash.ToLower())  $(Split-Path -Leaf $ZipPath)" | Set-Content -Path $ShaPath -Encoding ascii
+# Write-Host "-- SHA-256 checksum --"
+# $hash = Get-FileHash -Path $ZipPath -Algorithm SHA256
+# "$($hash.Hash.ToLower())  $(Split-Path -Leaf $ZipPath)" | Set-Content -Path $ShaPath -Encoding ascii
 
 Write-Host ""
 Write-Host "Klaar:" -ForegroundColor Green

@@ -643,7 +643,7 @@ namespace FldrSrtr
             ProtectedFoldersListBox.ItemsSource = _config.Settings.ProtectedFolders;
             ProtectedExtensionsListBox.ItemsSource = _config.Settings.ProtectedExtensions;
 
-            IconSetComboBox.ItemsSource = new[] { "Default", "Slim" };
+            IconSetComboBox.ItemsSource = new[] { "Default", "Slim", "Line" };
             IconSetComboBox.SelectedItem = _config.Settings.IconSet;
             if (IconSetComboBox.SelectedItem == null)
             {
@@ -664,11 +664,64 @@ namespace FldrSrtr
                 return;
             }
 
+            string newIconSet = IconSetComboBox.SelectedItem as string ?? "Default";
+            bool iconSetChanged = newIconSet != _config.Settings.IconSet;
+
             _config.Settings.ConfirmationThreshold = threshold;
             _config.Settings.MaxFilesPerRun = maxFiles;
-            _config.Settings.IconSet = IconSetComboBox.SelectedItem as string ?? "Default";
+            _config.Settings.IconSet = newIconSet;
             SaveConfig();
+
+            if (iconSetChanged)
+            {
+                IconSetProvider.ApplySetting(newIconSet);
+                if (!TryRefreshIconsLive())
+                {
+                    MessageBox.Show(this, "Instellingen opgeslagen. Herstart FldrSrtr om de nieuwe icoonset overal toe te passen.",
+                        "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+            }
+
             MessageBox.Show(this, "Instellingen opgeslagen.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// Re-runs IconPathConverter for every icon Image already on screen, across every open
+        /// window, so a changed icon set applies immediately without a restart. This is cheap
+        /// (embedded, already-small PNGs) and normally finishes in well under a second — but if
+        /// it ever runs slow enough to be noticeable, we bail out and let the caller ask for a
+        /// restart instead of freezing the UI for it.
+        /// </summary>
+        private static bool TryRefreshIconsLive()
+        {
+            const int UnnoticeableBudgetMs = 800;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            foreach (Window window in Application.Current.Windows)
+            {
+                RefreshIconImages(window);
+                if (stopwatch.ElapsedMilliseconds > UnnoticeableBudgetMs)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static void RefreshIconImages(DependencyObject root)
+        {
+            if (root is System.Windows.Controls.Image image)
+            {
+                System.Windows.Data.BindingOperations.GetBindingExpression(image, System.Windows.Controls.Image.SourceProperty)?.UpdateTarget();
+            }
+
+            int childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < childCount; i++)
+            {
+                RefreshIconImages(System.Windows.Media.VisualTreeHelper.GetChild(root, i));
+            }
         }
 
         private void BrowseProtectedFolder_Click(object sender, RoutedEventArgs e)

@@ -7,7 +7,7 @@ namespace FldrSrtr
     /// <summary>
     /// Rewrites a button's Tag (e.g. "Icons/icon-add.png", always written against the default
     /// set in XAML) to the currently active icon set's folder — so every IconButton's XAML stays
-    /// untouched regardless of which set (Default/Slim) is selected in Settings.
+    /// untouched regardless of which set (Default/Slim/Line) is selected in Settings.
     /// </summary>
     public class IconPathConverter : IValueConverter
     {
