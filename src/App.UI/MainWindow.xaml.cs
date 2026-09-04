@@ -41,7 +41,17 @@ namespace FldrSrtr
         {
             Title = $"FldrSrtr v{GetAppVersion()}";
 
-            _config = _configService.LoadOrCreateDefault();
+            try
+            {
+                _config = _configService.LoadOrCreateDefault();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(this, ex.Message, "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown(1);
+                return;
+            }
+
             _scanner = new FolderScanner(_fileSystem);
             FoldersList.ItemsSource = _config.Folders;
 
@@ -71,7 +81,13 @@ namespace FldrSrtr
         private WatchedFolder SelectedFolder => FoldersList.SelectedItem as WatchedFolder;
         private Rule SelectedRule => RulesList.SelectedItem as Rule;
 
+        /// <summary>Saves both files — use only where a change could touch either half (import). Everywhere
+        /// else, call SaveFoldersConfig or SaveSettingsConfig so backups apply only to what actually changed.</summary>
         private void SaveConfig() => _configService.Save(_config);
+
+        private void SaveFoldersConfig() => _configService.SaveFolders(_config);
+
+        private void SaveSettingsConfig() => _configService.SaveSettings(_config);
 
         private ProtectedPathGuard BuildGuard() =>
             new ProtectedPathGuard(_config.Settings.ProtectedFolders, _config.Settings.ProtectedExtensions);
@@ -105,7 +121,7 @@ namespace FldrSrtr
             }
 
             _config.Folders.Add(new WatchedFolder { Path = path });
-            SaveConfig();
+            SaveFoldersConfig();
         }
 
         private void RemoveFolder_Click(object sender, RoutedEventArgs e)
@@ -124,7 +140,7 @@ namespace FldrSrtr
             }
 
             _config.Folders.Remove(folder);
-            SaveConfig();
+            SaveFoldersConfig();
         }
 
         private void DuplicateFolder_Click(object sender, RoutedEventArgs e)
@@ -138,7 +154,7 @@ namespace FldrSrtr
             WatchedFolder clone = _importExportService.CloneFolder(folder);
             int index = _config.Folders.IndexOf(folder);
             _config.Folders.Insert(index + 1, clone);
-            SaveConfig();
+            SaveFoldersConfig();
             FoldersList.SelectedItem = clone;
         }
 
@@ -178,7 +194,7 @@ namespace FldrSrtr
             var settings = new FolderSettingsWindow(folder) { Owner = this };
             if (settings.ShowDialog() == true)
             {
-                SaveConfig();
+                SaveFoldersConfig();
             }
         }
 
@@ -210,7 +226,7 @@ namespace FldrSrtr
                     {
                         WatchedFolder imported = _importExportService.ImportFolder(dialog.FileName);
                         _config.Folders.Add(imported);
-                        SaveConfig();
+                        SaveFoldersConfig();
                     }
                     catch (Exception ex)
                     {
@@ -254,7 +270,7 @@ namespace FldrSrtr
             if (editor.ShowDialog() == true)
             {
                 folder.Rules.Add(rule);
-                SaveConfig();
+                SaveFoldersConfig();
                 RulesList.SelectedItem = rule;
             }
         }
@@ -270,7 +286,7 @@ namespace FldrSrtr
             var editor = new RuleEditorWindow(rule) { Owner = this };
             if (editor.ShowDialog() == true)
             {
-                SaveConfig();
+                SaveFoldersConfig();
                 RulesList.Items.Refresh();
                 RefreshRulePreview();
             }
@@ -288,7 +304,7 @@ namespace FldrSrtr
             Rule clone = _importExportService.CloneRule(rule);
             int index = folder.Rules.IndexOf(rule);
             folder.Rules.Insert(index + 1, clone);
-            SaveConfig();
+            SaveFoldersConfig();
             RulesList.SelectedItem = clone;
         }
 
@@ -302,7 +318,7 @@ namespace FldrSrtr
             }
 
             folder.Rules.Remove(rule);
-            SaveConfig();
+            SaveFoldersConfig();
             RefreshRulePreview();
         }
 
@@ -341,7 +357,7 @@ namespace FldrSrtr
                     {
                         Rule imported = _importExportService.ImportRule(dialog.FileName);
                         folder.Rules.Add(imported);
-                        SaveConfig();
+                        SaveFoldersConfig();
                     }
                     catch (Exception ex)
                     {
@@ -649,6 +665,8 @@ namespace FldrSrtr
             {
                 IconSetComboBox.SelectedIndex = 0;
             }
+
+            BackupOnSettingsChangeCheckBox.IsChecked = _config.Settings.BackupOnSettingsChange;
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)
@@ -670,7 +688,8 @@ namespace FldrSrtr
             _config.Settings.ConfirmationThreshold = threshold;
             _config.Settings.MaxFilesPerRun = maxFiles;
             _config.Settings.IconSet = newIconSet;
-            SaveConfig();
+            _config.Settings.BackupOnSettingsChange = BackupOnSettingsChangeCheckBox.IsChecked == true;
+            SaveSettingsConfig();
 
             if (iconSetChanged)
             {
@@ -742,7 +761,7 @@ namespace FldrSrtr
             }
             _config.Settings.ProtectedFolders.Add(path);
             NewProtectedFolderTextBox.Clear();
-            SaveConfig();
+            SaveSettingsConfig();
         }
 
         private void RemoveProtectedFolder_Click(object sender, RoutedEventArgs e)
@@ -750,7 +769,7 @@ namespace FldrSrtr
             if (((FrameworkElement)sender).DataContext is string path)
             {
                 _config.Settings.ProtectedFolders.Remove(path);
-                SaveConfig();
+                SaveSettingsConfig();
             }
         }
 
@@ -763,7 +782,7 @@ namespace FldrSrtr
             }
             _config.Settings.ProtectedExtensions.Add(ext);
             NewProtectedExtensionTextBox.Clear();
-            SaveConfig();
+            SaveSettingsConfig();
         }
 
         private void RemoveProtectedExtension_Click(object sender, RoutedEventArgs e)
@@ -771,7 +790,7 @@ namespace FldrSrtr
             if (((FrameworkElement)sender).DataContext is string ext)
             {
                 _config.Settings.ProtectedExtensions.Remove(ext);
-                SaveConfig();
+                SaveSettingsConfig();
             }
         }
 

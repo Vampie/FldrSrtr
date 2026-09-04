@@ -275,6 +275,11 @@
                 <TextBlock Text="Wordt direct toegepast bij opslaan. Eigen sets: zet een map met dezelfde bestandsnamen in IconSets\ naast FldrSrtr.exe."
                            Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
 
+                <TextBlock Text="Backups" FontWeight="Bold" Margin="0,0,0,8" />
+                <CheckBox x:Name="BackupOnSettingsChangeCheckBox" Content="Backup maken van general.config.json bij elke gewijzigde instelling" Margin="0,0,0,4" />
+                <TextBlock Text="Folders en regels (folders.config.json) worden altijd gebackupt, ongeacht deze instelling."
+                           Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
+
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                     <Button Content="Save settings" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Click="SaveSettings_Click" />
                 </StackPanel>

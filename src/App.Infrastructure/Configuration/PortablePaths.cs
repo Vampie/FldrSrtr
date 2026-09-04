@@ -11,7 +11,17 @@ namespace App.Infrastructure.Configuration
     {
         public static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
 
-        public static string ConfigFilePath => Path.Combine(BaseDirectory, "config.json");
+        /// <summary>Pre-split single-file config, kept only so ConfigService can detect and
+        /// migrate it on first load after upgrading. New installs never write this file.</summary>
+        public static string LegacyConfigFilePath => Path.Combine(BaseDirectory, "config.json");
+
+        /// <summary>App-wide settings (§3.8 safety knobs, icon set, ...) — the "Settings" half of
+        /// the old combined config.json.</summary>
+        public static string GeneralConfigFilePath => Path.Combine(BaseDirectory, "general.config.json");
+
+        /// <summary>Watched folders and their rules — the "Folders" half of the old combined
+        /// config.json.</summary>
+        public static string FoldersConfigFilePath => Path.Combine(BaseDirectory, "folders.config.json");
 
         /// <summary>
         /// Throws a clear, actionable exception instead of a bare UnauthorizedAccessException

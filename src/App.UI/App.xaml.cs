@@ -20,8 +20,16 @@ namespace FldrSrtr
                 return;
             }
 
-            var config = new ConfigService().LoadOrCreateDefault();
-            IconSetProvider.ApplySetting(config.Settings.IconSet);
+            try
+            {
+                var config = new ConfigService().LoadOrCreateDefault();
+                IconSetProvider.ApplySetting(config.Settings.IconSet);
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown(1);
+            }
         }
     }
 }
