@@ -3,6 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:model="clr-namespace:App.Core.Model;assembly=App.Core"
         xmlns:local="clr-namespace:FldrSrtr"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        ui:WindowHelper.UseModernWindowStyle="True"
         Title="{local:Loc RuleEditor.Title}" Height="900" Width="1100"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
@@ -29,7 +31,7 @@
                       Checked="AdvancedModeCheckBox_Changed" Unchecked="AdvancedModeCheckBox_Changed" />
         </StackPanel>
 
-        <Border Grid.Row="1" x:Name="VariableHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="10" Margin="0,0,0,8">
+        <Border Grid.Row="1" x:Name="VariableHelpPanel" Visibility="Collapsed" Style="{StaticResource CardBorder}" Padding="10" Margin="0,0,0,8">
             <StackPanel>
                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,8" FontSize="11" Text="{local:Loc RuleEditor.VariableHelp.Intro}" />
 
@@ -95,7 +97,7 @@
                           Checked="ConditionsHelpToggle_Changed" Unchecked="ConditionsHelpToggle_Changed" />
         </StackPanel>
 
-        <Border Grid.Row="3" x:Name="ConditionsHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="8" Margin="0,0,0,8">
+        <Border Grid.Row="3" x:Name="ConditionsHelpPanel" Visibility="Collapsed" Style="{StaticResource CardBorder}" Padding="8" Margin="0,0,0,8">
             <TextBlock TextWrapping="Wrap" FontSize="11" Text="{local:Loc RuleEditor.ConditionsHelp}" />
         </Border>
 
