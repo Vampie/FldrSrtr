@@ -69,6 +69,21 @@ namespace App.Infrastructure.Tests
         }
 
         [Fact]
+        public void LoadOrCreateDefault_RoundTripsQuickActionPaths()
+        {
+            var sut = new ConfigService(_tempDir);
+            var saved = new AppConfig();
+            saved.Settings.QuickActionSourceFolder = @"C:\Downloads";
+            saved.Settings.QuickActionDestination = @"D:\Sorted";
+            sut.Save(saved);
+
+            var reloaded = sut.LoadOrCreateDefault();
+
+            reloaded.Settings.QuickActionSourceFolder.Should().Be(@"C:\Downloads");
+            reloaded.Settings.QuickActionDestination.Should().Be(@"D:\Sorted");
+        }
+
+        [Fact]
         public void SaveSettings_OnlyTouchesGeneralConfigFile()
         {
             var sut = new ConfigService(_tempDir);

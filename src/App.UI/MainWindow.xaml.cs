@@ -55,6 +55,9 @@ namespace FldrSrtr
             _scanner = new FolderScanner(_fileSystem);
             FoldersList.ItemsSource = _config.Folders;
 
+            QuickActionSourceTextBox.Text = _config.Settings.QuickActionSourceFolder;
+            QuickActionDestinationTextBox.Text = _config.Settings.QuickActionDestination;
+
             PeriodComboBox.ItemsSource = Enum.GetValues(typeof(StatisticsPeriod));
             PeriodComboBox.SelectedItem = StatisticsPeriod.Last7Days;
 
@@ -91,6 +94,145 @@ namespace FldrSrtr
 
         private ProtectedPathGuard BuildGuard() =>
             new ProtectedPathGuard(_config.Settings.ProtectedFolders, _config.Settings.ProtectedExtensions);
+
+        // ===================== Dashboard: quick action =====================
+
+        /// <summary>Persists whatever is currently typed in the quick-action fields — called
+        /// right before acting on them, so the values are saved even if the user never left the
+        /// textbox (e.g. pasted a path and immediately clicked a button).</summary>
+        private void SaveQuickActionPaths()
+        {
+            _config.Settings.QuickActionSourceFolder = QuickActionSourceTextBox.Text.Trim();
+            _config.Settings.QuickActionDestination = QuickActionDestinationTextBox.Text.Trim();
+            SaveSettingsConfig();
+        }
+
+        private void BrowseQuickActionSource_Click(object sender, RoutedEventArgs e)
+        {
+            string path = ModernFolderPicker.PickFolder("Selecteer de bronmap", QuickActionSourceTextBox.Text);
+            if (path != null)
+            {
+                QuickActionSourceTextBox.Text = path;
+                SaveQuickActionPaths();
+            }
+        }
+
+        private void BrowseQuickActionDestination_Click(object sender, RoutedEventArgs e)
+        {
+            string path = ModernFolderPicker.PickFolder("Selecteer de destination", QuickActionDestinationTextBox.Text);
+            if (path != null)
+            {
+                QuickActionDestinationTextBox.Text = path;
+                SaveQuickActionPaths();
+            }
+        }
+
+        private void QuickActionDryRun_Click(object sender, RoutedEventArgs e) => RunQuickAction(ActionType.Move, dryRun: true);
+
+        private void QuickActionMove_Click(object sender, RoutedEventArgs e) => RunQuickAction(ActionType.Move, dryRun: false);
+
+        private void QuickActionCopy_Click(object sender, RoutedEventArgs e) => RunQuickAction(ActionType.Copy, dryRun: false);
+
+        /// <summary>
+        /// Moves/copies every top-level file in the quick-action source folder to its destination
+        /// — a one-off action for "just do this now" without creating a WatchedFolder/Rule for it.
+        /// Shares the exact same evaluation/execution path (RuleEngine) as a real rule, just with
+        /// an ad-hoc, never-persisted Rule matching everything (ConditionField.All).
+        /// </summary>
+        private void RunQuickAction(ActionType actionType, bool dryRun)
+        {
+            SaveQuickActionPaths();
+
+            string source = _config.Settings.QuickActionSourceFolder;
+            string destination = _config.Settings.QuickActionDestination;
+
+            if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(destination))
+            {
+                MessageBox.Show(this, "Geef zowel een bronmap als een destination op.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (!_fileSystem.Directory.Exists(source))
+            {
+                MessageBox.Show(this, "De bronmap bestaat niet.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var sourceFolder = new WatchedFolder { Path = source, Recursive = false };
+            var rule = new Rule { Name = "Snelle actie", RootCondition = ConditionNode.NewGroup() };
+            rule.RootCondition.Children.Add(ConditionNode.NewLeaf(ConditionField.All, ConditionOperator.Equals, null));
+            rule.Actions.Add(new RuleAction { Type = actionType, Destination = destination, OnConflict = ConflictResolution.Rename });
+
+            var files = _scanner.Scan(sourceFolder);
+            var fileOps = new FileSystemFileOperations(_fileSystem, BuildGuard());
+            var engine = new RuleEngine(fileOps, new WpfConflictPrompt(this));
+            int matchCount = engine.GetMatches(rule, files).Count();
+
+            if (!dryRun)
+            {
+                if (matchCount > _config.Settings.MaxFilesPerRun)
+                {
+                    MessageBox.Show(this,
+                        $"De bronmap bevat {matchCount} bestand(en) — dat is meer dan de ingestelde limiet van {_config.Settings.MaxFilesPerRun}.\n" +
+                        "Verhoog de limiet in Settings als dit verwacht is.",
+                        "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                string verb = actionType == ActionType.Move ? "Verplaats" : "Kopieer";
+                string question =
+                    $"{verb} {matchCount} bestand(en) van\n{source}\nnaar\n{destination}\n\n" +
+                    (matchCount > _config.Settings.ConfirmationThreshold ? "Dit is best veel bestanden — doorgaan?" : "Doorgaan?");
+
+                if (MessageBox.Show(this, question, "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            List<ExecutionResult> results = engine.ExecuteRule(rule, files, dryRun);
+
+            int success = 0, skipped = 0, failed = 0;
+            foreach (ExecutionResult result in results)
+            {
+                if (result.Plan.Skipped)
+                {
+                    skipped++;
+                }
+                else if (result.Success)
+                {
+                    success++;
+                }
+                else
+                {
+                    failed++;
+                }
+
+                if (!dryRun)
+                {
+                    _activityLogger.Append(new ActivityLogEntry
+                    {
+                        FolderPath = source,
+                        RuleName = rule.Name,
+                        FileName = result.Plan.File.Name,
+                        Action = result.Plan.Action.Type.ToString(),
+                        Status = result.Plan.Skipped ? "WARNING" : (result.Success ? "SUCCESS" : "ERROR"),
+                        Message = result.ErrorMessage ?? result.Plan.SkipReason,
+                        OriginalPath = result.Plan.OriginalPath,
+                        DestinationPath = result.Plan.ResolvedDestinationPath,
+                        FileSizeBytes = result.Plan.File.SizeBytes
+                    });
+                }
+            }
+
+            if (!dryRun)
+            {
+                RefreshActivity();
+            }
+
+            MessageBox.Show(this,
+                $"{(dryRun ? "Test" : "Klaar")}: {matchCount} bestand(en) gematcht — {success} succesvol, {skipped} overgeslagen, {failed} mislukt.",
+                "FldrSrtr", MessageBoxButton.OK, failed > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information);
+        }
 
         // ===================== Folders =====================
 

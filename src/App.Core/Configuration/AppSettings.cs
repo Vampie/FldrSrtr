@@ -37,5 +37,16 @@ namespace App.Core.Configuration
         /// pack and before the Default fallback. Applied live when changed in Settings.
         /// </summary>
         public Dictionary<string, string> IconOverrides { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Dashboard's "Snelle actie" panel — a source folder and destination the user can move
+        /// or copy files between on the spot, without creating a persisted Rule/WatchedFolder for
+        /// it. Deliberately lives here (Settings), not in folders.config.json — it's not a rule,
+        /// just a remembered pair of paths, pre-filled the next time the app opens.
+        /// </summary>
+        public string QuickActionSourceFolder { get; set; } = string.Empty;
+
+        /// <summary>See QuickActionSourceFolder.</summary>
+        public string QuickActionDestination { get; set; } = string.Empty;
     }
 }
