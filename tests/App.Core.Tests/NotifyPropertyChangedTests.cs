@@ -41,5 +41,21 @@ namespace App.Core.Tests
             raisedNames.Should().Contain(nameof(RuleAction.Destination));
             raisedNames.Should().Contain(string.Empty);
         }
+
+        [Fact]
+        public void WatchedFolder_ChangingPath_RaisesNotification()
+        {
+            // Reported bug: changing a folder entry's root path in Folder settings didn't update
+            // its row in the Folders list (bound directly to WatchedFolder.Path) until the app was
+            // restarted. Unlike ConditionNode/RuleAction's whole-object label binding, this one
+            // binds a named property, so the plain named notification is all that's needed here.
+            var folder = new WatchedFolder { Path = @"C:\Downloads" };
+            var raisedNames = new List<string>();
+            folder.PropertyChanged += (s, e) => raisedNames.Add(e.PropertyName);
+
+            folder.Path = @"D:\Other";
+
+            raisedNames.Should().Contain(nameof(WatchedFolder.Path));
+        }
     }
 }
