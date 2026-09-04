@@ -47,6 +47,12 @@ namespace App.Core.Execution
             var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             DateTime now = DateTime.Now;
 
+            // {Counter} state: never persisted beyond this ExecuteRule call. counterNextValue
+            // carries the next value per distinct "Counter:start:step" spec across files;
+            // counterThisFile (rebuilt per file) makes every action on the same file see the
+            // same value even though each one resolves variables independently.
+            var counterNextValue = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
             foreach (FileEntry file in GetMatches(rule, fileList))
             {
                 if (!seenPaths.Add(file.FullPath))
@@ -54,11 +60,25 @@ namespace App.Core.Execution
                     continue;
                 }
 
+                var counterThisFile = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                int CounterResolver(string spec)
+                {
+                    if (counterThisFile.TryGetValue(spec, out int cached))
+                    {
+                        return cached;
+                    }
+                    VariableResolver.ParseCounterSpec(spec, out int start, out int step);
+                    int value = counterNextValue.TryGetValue(spec, out int next) ? next : start;
+                    counterThisFile[spec] = value;
+                    counterNextValue[spec] = value + step;
+                    return value;
+                }
+
                 string currentPath = file.FullPath;
 
                 foreach (RuleAction action in rule.Actions)
                 {
-                    PlannedAction plan = PlanAction(file, action, currentPath, now);
+                    PlannedAction plan = PlanAction(file, action, currentPath, now, CounterResolver);
                     ExecutionResult result = Execute(plan, dryRun);
                     results.Add(result);
 
@@ -91,7 +111,7 @@ namespace App.Core.Execution
             type == ActionType.Move || type == ActionType.Rename ||
             type == ActionType.AddExtension || type == ActionType.RemoveExtension;
 
-        public PlannedAction PlanAction(FileEntry file, RuleAction action, string currentPath, DateTime? now = null)
+        public PlannedAction PlanAction(FileEntry file, RuleAction action, string currentPath, DateTime? now = null, Func<string, int> counterResolver = null)
         {
             DateTime effectiveNow = now ?? DateTime.Now;
             var plan = new PlannedAction
@@ -109,19 +129,19 @@ namespace App.Core.Execution
 
                 case ActionType.OpenWith:
                 case ActionType.ExecuteExternal:
-                    plan.ResolvedDestinationPath = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow);
-                    plan.ResolvedArguments = VariableResolver.Resolve(action.Arguments, file, currentPath, effectiveNow);
+                    plan.ResolvedDestinationPath = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow, counterResolver);
+                    plan.ResolvedArguments = VariableResolver.Resolve(action.Arguments, file, currentPath, effectiveNow, counterResolver);
                     return plan;
 
                 case ActionType.CreateFolder:
                 case ActionType.Zip:
                     plan.ResolvedDestinationPath = MakeAbsolute(
-                        VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow), currentPath);
+                        VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow, counterResolver), currentPath);
                     return plan;
 
                 case ActionType.AddExtension:
                     {
-                        string ext = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow).TrimStart('.');
+                        string ext = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow, counterResolver).TrimStart('.');
                         string desired = currentPath + "." + ext;
                         plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
                         return plan;
@@ -139,7 +159,7 @@ namespace App.Core.Execution
                 case ActionType.Rename:
                     {
                         string dir = Path.GetDirectoryName(currentPath);
-                        string newName = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow);
+                        string newName = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow, counterResolver);
                         string desired = Path.Combine(dir ?? string.Empty, newName);
                         plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
                         return plan;
@@ -148,7 +168,7 @@ namespace App.Core.Execution
                 default: // Move, Copy
                     {
                         string template = action.Destination ?? string.Empty;
-                        string resolved = MakeAbsolute(VariableResolver.Resolve(template, file, currentPath, effectiveNow), currentPath);
+                        string resolved = MakeAbsolute(VariableResolver.Resolve(template, file, currentPath, effectiveNow, counterResolver), currentPath);
                         bool includesFileName = template.Contains("{FileName}") || template.Contains("{OriginalName}");
                         string desired = includesFileName ? resolved : Path.Combine(resolved, Path.GetFileName(currentPath));
                         plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);

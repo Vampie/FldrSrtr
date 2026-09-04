@@ -48,7 +48,7 @@ Write-Host "== FldrSrtr release build v$FullVersion (build #$BuildNumber) ==" -F
 Write-Host "Vergeet niet build/.build-counter mee te committen zodat de teller gedeeld blijft." -ForegroundColor DarkYellow
 
 Write-Host "-- Bouwen (Release) --"
-dotnet build $SlnPath -c Release
+dotnet build $SlnPath -c Release "-p:Version=$FullVersion"
 if ($LASTEXITCODE -ne 0) {
     throw "Build mislukt (exit code $LASTEXITCODE)."
 }

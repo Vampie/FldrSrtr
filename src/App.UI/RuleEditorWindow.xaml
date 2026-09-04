@@ -37,6 +37,8 @@
                 <LineBreak />
                 Van het bestand zelf: {CreatedYear} {CreatedMonth} {CreatedDay} {CreatedDate} {CreatedTime} — en dezelfde set met "Modified" i.p.v. "Created"
                 <LineBreak />
+                Teller: {Counter} (start 1, stap 1), {Counter:100} (start 100), {Counter:100:5} (start 100, stap 5) — telt op per verwerkt bestand in deze run, niet bewaard tussen runs.
+                <LineBreak />
                 Voorbeeld: D:\Archief\{Year}\{Month}\{FileName}.{Extension} — een niet-bestaande submap wordt automatisch aangemaakt.
             </TextBlock>
         </Border>

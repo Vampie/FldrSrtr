@@ -92,6 +92,37 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void Resolve_CounterToken_WithoutResolver_IsLeftUnchanged()
+        {
+            var file = MakeFile();
+            string result = VariableResolver.Resolve("{Counter}", file, file.FullPath, DateTime.Now);
+
+            result.Should().Be("{Counter}");
+        }
+
+        [Fact]
+        public void Resolve_CounterToken_DelegatesToResolver()
+        {
+            var file = MakeFile();
+            string result = VariableResolver.Resolve("file_{Counter}", file, file.FullPath, DateTime.Now, spec => 42);
+
+            result.Should().Be("file_42");
+        }
+
+        [Theory]
+        [InlineData("Counter", 1, 1)]
+        [InlineData("Counter:100", 100, 1)]
+        [InlineData("Counter:100:5", 100, 5)]
+        [InlineData("Counter:-3:2", -3, 2)]
+        public void ParseCounterSpec_ParsesStartAndStep(string spec, int expectedStart, int expectedStep)
+        {
+            VariableResolver.ParseCounterSpec(spec, out int start, out int step);
+
+            start.Should().Be(expectedStart);
+            step.Should().Be(expectedStep);
+        }
+
+        [Fact]
         public void Resolve_NullOrEmptyTemplate_ReturnsUnchanged()
         {
             var file = MakeFile();

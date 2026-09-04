@@ -39,6 +39,8 @@ namespace FldrSrtr
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            Title = $"FldrSrtr v{GetAppVersion()}";
+
             _config = _configService.LoadOrCreateDefault();
             _scanner = new FolderScanner(_fileSystem);
             FoldersList.ItemsSource = _config.Folders;
@@ -48,6 +50,22 @@ namespace FldrSrtr
 
             LoadSettingsIntoUi();
             RefreshActivity();
+        }
+
+        /// <summary>
+        /// Reads the informational version (e.g. "1.2.11") that release.ps1 stamps onto the
+        /// assembly via -p:Version. Falls back to the plain assembly version for local/dev
+        /// builds that were never packaged through the release script.
+        /// </summary>
+        private static string GetAppVersion()
+        {
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            string informational = assembly
+                .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+                .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+                .FirstOrDefault()?.InformationalVersion;
+
+            return !string.IsNullOrWhiteSpace(informational) ? informational : assembly.GetName().Version.ToString();
         }
 
         private WatchedFolder SelectedFolder => FoldersList.SelectedItem as WatchedFolder;
@@ -67,6 +85,14 @@ namespace FldrSrtr
             RulesHeaderText.Text = folder != null ? $"Rules for: {folder.Path}" : "Selecteer een folder";
             _previewRows.Clear();
             SummaryText.Text = string.Empty;
+        }
+
+        private void FoldersList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (SelectedFolder != null)
+            {
+                FolderSettings_Click(sender, e);
+            }
         }
 
         private void AddFolder_Click(object sender, RoutedEventArgs e)
@@ -179,6 +205,14 @@ namespace FldrSrtr
         }
 
         // ===================== Rules =====================
+
+        private void RulesList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (SelectedRule != null)
+            {
+                EditRule_Click(sender, e);
+            }
+        }
 
         private void AddRule_Click(object sender, RoutedEventArgs e)
         {
@@ -299,9 +333,10 @@ namespace FldrSrtr
                 return;
             }
 
-            string question = matchCount > _config.Settings.ConfirmationThreshold
-                ? $"Deze regel matcht {matchCount} bestanden. Dit wijzigt bestanden op schijf. Doorgaan?"
-                : "Deze regel echt uitvoeren? Dit wijzigt bestanden op schijf.";
+            string question =
+                $"Regel '{rule.Name}' uitvoeren op:\n{folder.Path}\n\n" +
+                $"{matchCount} bestand(en) komen in aanmerking. Dit wijzigt bestanden op schijf.\n\n" +
+                (matchCount > _config.Settings.ConfirmationThreshold ? "Dit is best veel bestanden — doorgaan?" : "Doorgaan?");
 
             MessageBoxResult confirm = MessageBox.Show(this, question, "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm == MessageBoxResult.Yes)
@@ -377,9 +412,30 @@ namespace FldrSrtr
             }
         }
 
+        private void ResultsGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (ResultsGrid.SelectedItem is PreviewRow row)
+            {
+                MessageBox.Show(this,
+                    $"Bestand: {row.FileName}\nActie: {row.Action}\nStatus: {row.Status}\n\nVan:\n{row.FromPath}\n\nNaar:\n{row.ToPath}\n\nMelding:\n{row.Message}",
+                    "FldrSrtr — details", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         // ===================== Activity =====================
 
         private void RefreshActivity_Click(object sender, RoutedEventArgs e) => RefreshActivity();
+
+        private void ActivityGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (ActivityGrid.SelectedItem is ActivityLogEntry entry)
+            {
+                MessageBox.Show(this,
+                    $"Tijd (UTC): {entry.TimestampUtc}\nFolder: {entry.FolderPath}\nRegel: {entry.RuleName}\nBestand: {entry.FileName}\n" +
+                    $"Actie: {entry.Action}\nStatus: {entry.Status}\n\nVan:\n{entry.OriginalPath}\n\nNaar:\n{entry.DestinationPath}\n\nMelding:\n{entry.Message}",
+                    "FldrSrtr — details", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
 
         private void RefreshActivity()
         {

@@ -418,6 +418,56 @@ namespace App.Core.Tests
             fileOps.Moved.Should().ContainSingle(m => m.From == @"C:\Downloads\b.pdf");
         }
 
+        [Fact]
+        public void ExecuteRule_Counter_IncrementsOncePerFile_AcrossMatches()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var a = MakeFile(@"C:\Downloads", "a.pdf");
+            var b = MakeFile(@"C:\Downloads", "b.pdf");
+            var c = MakeFile(@"C:\Downloads", "c.pdf");
+            var rule = MakeMatchAllRule(new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive\{Counter:100:5}" });
+
+            engine.ExecuteRule(rule, new[] { a, b, c }, dryRun: false);
+
+            fileOps.Moved.Should().Contain(m => m.To == @"D:\Archive\100\a.pdf");
+            fileOps.Moved.Should().Contain(m => m.To == @"D:\Archive\105\b.pdf");
+            fileOps.Moved.Should().Contain(m => m.To == @"D:\Archive\110\c.pdf");
+        }
+
+        [Fact]
+        public void ExecuteRule_Counter_SameValueAcrossChainedActionsForOneFile()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var rule = MakeMatchAllRule(
+                new RuleAction { Type = ActionType.Rename, Destination = "renamed_{Counter}.pdf" },
+                new RuleAction { Type = ActionType.CreateFolder, Destination = @"D:\Archive\{Counter}" });
+
+            List<ExecutionResult> results = engine.ExecuteRule(rule, new[] { file }, dryRun: false);
+
+            fileOps.Moved.Should().ContainSingle(m => m.To == @"C:\Downloads\renamed_1.pdf");
+            fileOps.CreatedDirectories.Should().ContainSingle(d => d == @"D:\Archive\1");
+        }
+
+        [Fact]
+        public void ExecuteRule_Counter_DoesNotPersistAcrossSeparateExecuteRuleCalls()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var a = MakeFile(@"C:\Downloads", "a.pdf");
+            var rule = MakeMatchAllRule(new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive\{Counter}" });
+
+            engine.ExecuteRule(rule, new[] { a }, dryRun: false);
+            fileOps.ExistingFiles.Clear(); // reset as if files were freshly rescanned
+            var aAgain = MakeFile(@"C:\Downloads", "a.pdf");
+            engine.ExecuteRule(rule, new[] { aAgain }, dryRun: false);
+
+            // Both separate runs start the counter fresh at 1 — it must never be remembered on the engine instance.
+            fileOps.Moved.Should().OnlyContain(m => m.To == @"D:\Archive\1\a.pdf");
+        }
+
         private class ThrowingFileOperations : IFileOperations
         {
             public bool FileExists(string path) => false;

@@ -84,7 +84,7 @@
                         <Button Content="Import folder..." Click="ImportFolder_Click" />
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Folders" FontWeight="Bold" Margin="0,0,0,4" />
-                    <ListBox x:Name="FoldersList" SelectionChanged="FoldersList_SelectionChanged">
+                    <ListBox x:Name="FoldersList" SelectionChanged="FoldersList_SelectionChanged" MouseDoubleClick="FoldersList_MouseDoubleClick">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -119,7 +119,7 @@
                         <Button Content="Run rule" Click="RunRule_Click" />
                     </StackPanel>
 
-                    <ListBox x:Name="RulesList" Grid.Row="2">
+                    <ListBox x:Name="RulesList" Grid.Row="2" MouseDoubleClick="RulesList_MouseDoubleClick">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -132,14 +132,29 @@
 
                     <TextBlock Grid.Row="3" Text="Resultaat:" FontWeight="Bold" Margin="0,8,0,4" />
 
-                    <DataGrid x:Name="ResultsGrid" Grid.Row="4" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid x:Name="ResultsGrid" Grid.Row="4" AutoGenerateColumns="False" IsReadOnly="True"
+                              HorizontalScrollBarVisibility="Auto" MouseDoubleClick="ResultsGrid_MouseDoubleClick">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Bestand" Binding="{Binding FileName}" Width="180" />
                             <DataGridTextColumn Header="Actie" Binding="{Binding Action}" Width="100" />
-                            <DataGridTextColumn Header="Van" Binding="{Binding FromPath}" Width="*" />
-                            <DataGridTextColumn Header="Naar" Binding="{Binding ToPath}" Width="*" />
+                            <DataGridTextColumn Header="Van" Binding="{Binding FromPath}" Width="280">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Padding" Value="0,0,4,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Naar" Binding="{Binding ToPath}" Width="280">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Padding" Value="0,0,4,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
-                            <DataGridTextColumn Header="Melding" Binding="{Binding Message}" Width="150" />
+                            <DataGridTextColumn Header="Melding" Binding="{Binding Message}" Width="200" />
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -166,15 +181,23 @@
                     <Button Content="Refresh" Margin="0,0,8,0" Click="RefreshActivity_Click" />
                     <Button Content="Undo last action" Click="UndoLastAction_Click" />
                 </StackPanel>
-                <DataGrid x:Name="ActivityGrid" AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid x:Name="ActivityGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                          HorizontalScrollBarVisibility="Auto" MouseDoubleClick="ActivityGrid_MouseDoubleClick">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tijd (UTC)" Binding="{Binding TimestampUtc}" Width="150" />
-                        <DataGridTextColumn Header="Folder" Binding="{Binding FolderPath}" Width="180" />
+                        <DataGridTextColumn Header="Folder" Binding="{Binding FolderPath}" Width="220">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextAlignment" Value="Right" />
+                                    <Setter Property="Padding" Value="0,0,4,0" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTextColumn Header="Regel" Binding="{Binding RuleName}" Width="120" />
                         <DataGridTextColumn Header="Bestand" Binding="{Binding FileName}" Width="140" />
                         <DataGridTextColumn Header="Actie" Binding="{Binding Action}" Width="90" />
                         <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" />
-                        <DataGridTextColumn Header="Melding" Binding="{Binding Message}" Width="*" />
+                        <DataGridTextColumn Header="Melding" Binding="{Binding Message}" Width="220" />
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>
