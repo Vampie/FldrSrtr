@@ -135,6 +135,7 @@ namespace App.Core.Execution
 
                 case ActionType.CreateFolder:
                 case ActionType.Zip:
+                case ActionType.DeleteTargetIfExists:
                     plan.ResolvedDestinationPath = MakeAbsolute(
                         VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow, counterResolver), currentPath);
                     return plan;
@@ -212,16 +213,21 @@ namespace App.Core.Execution
         /// "{Year}_{Month}\{Day}") used to resolve relative to the process's working directory —
         /// which for a portable exe is wherever it happens to be run from, not the folder being
         /// processed. Anchor it to the current file's own directory instead.
+        /// Also collapses "..\" / ".\" segments (Path.GetFullPath) so a template like "..\doel"
+        /// resolves to the parent directory, DOS-style, instead of leaving a literal ".." in the
+        /// path — that would otherwise reach every downstream check (protected-path guard,
+        /// conflict/File.Exists, the activity log) unnormalized.
         /// </summary>
         private static string MakeAbsolute(string path, string currentPath)
         {
-            if (string.IsNullOrEmpty(path) || Path.IsPathRooted(path))
+            if (string.IsNullOrEmpty(path))
             {
                 return path;
             }
 
             string baseDirectory = Path.GetDirectoryName(currentPath) ?? string.Empty;
-            return Path.Combine(baseDirectory, path);
+            string combined = Path.IsPathRooted(path) ? path : Path.Combine(baseDirectory, path);
+            return Path.GetFullPath(combined);
         }
 
         public ExecutionResult Execute(PlannedAction plan, bool dryRun)
@@ -261,6 +267,12 @@ namespace App.Core.Execution
                         break;
                     case ActionType.Zip:
                         _fileOps.AddToZip(plan.OriginalPath, plan.ResolvedDestinationPath);
+                        break;
+                    case ActionType.DeleteTargetIfExists:
+                        if (_fileOps.FileExists(plan.ResolvedDestinationPath))
+                        {
+                            _fileOps.DeleteToRecycleBin(plan.ResolvedDestinationPath);
+                        }
                         break;
                 }
                 return new ExecutionResult { Plan = plan, Success = true };

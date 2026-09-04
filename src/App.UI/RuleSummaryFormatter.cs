@@ -86,6 +86,8 @@ namespace FldrSrtr
                     return $"Execute {action.Destination}{args}";
                 case ActionType.AddExtension:
                     return $"Add extension \"{action.Destination}\"";
+                case ActionType.DeleteTargetIfExists:
+                    return $"Delete target if exists: {action.Destination}";
                 default:
                     return $"{action.Type} -> {action.Destination} (on conflict: {action.OnConflict})";
             }

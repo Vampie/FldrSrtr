@@ -69,6 +69,13 @@ namespace App.Core.Model
         {
             field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+            // The tree's label binds to the whole node (Text="{Binding Converter=...}", no Path) so
+            // it can show one formatted string built from several fields — a WPF binding with an
+            // empty path only refreshes on a PropertyChanged whose name is null/"", not on a named
+            // property, so without this the label change (fixed bug: tree not updating until the
+            // editor is closed and reopened) never reaches the TreeView.
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
         }
 
         public static ConditionNode NewGroup(GroupLogic logic = GroupLogic.All) => new ConditionNode

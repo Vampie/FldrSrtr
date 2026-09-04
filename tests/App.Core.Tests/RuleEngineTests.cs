@@ -175,6 +175,56 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void Execute_DeleteTargetIfExists_WhenTargetExists_DeletesItToRecycleBin()
+        {
+            var fileOps = new FakeFileOperations();
+            fileOps.ExistingFiles.Add(@"D:\Archive\invoice.pdf");
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.DeleteTargetIfExists, Destination = @"D:\Archive\invoice.pdf" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+            ExecutionResult result = engine.Execute(plan, dryRun: false);
+
+            result.Success.Should().BeTrue();
+            fileOps.DeletedToRecycleBin.Should().Contain(@"D:\Archive\invoice.pdf");
+        }
+
+        [Fact]
+        public void Execute_DeleteTargetIfExists_WhenTargetMissing_IsANoOp()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.DeleteTargetIfExists, Destination = @"D:\Archive\invoice.pdf" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+            ExecutionResult result = engine.Execute(plan, dryRun: false);
+
+            result.Success.Should().BeTrue();
+            fileOps.DeletedToRecycleBin.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ExecuteRule_DeleteTargetIfExistsThenMove_ClearsTheWayForTheMove()
+        {
+            var fileOps = new FakeFileOperations();
+            fileOps.ExistingFiles.Add(@"C:\Downloads\invoice.pdf");
+            fileOps.ExistingFiles.Add(@"D:\Archive\invoice.pdf"); // stale file blocking the move
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var rule = MakeMatchAllRule(
+                new RuleAction { Type = ActionType.DeleteTargetIfExists, Destination = @"D:\Archive\invoice.pdf" },
+                new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive", OnConflict = ConflictResolution.Overwrite });
+
+            List<ExecutionResult> results = engine.ExecuteRule(rule, new[] { file }, dryRun: false);
+
+            results.Should().OnlyContain(r => r.Success);
+            fileOps.DeletedToRecycleBin.Should().Contain(@"D:\Archive\invoice.pdf");
+            fileOps.Moved.Should().Contain(m => m.From == @"C:\Downloads\invoice.pdf" && m.To == @"D:\Archive\invoice.pdf");
+        }
+
+        [Fact]
         public void Execute_WhenFileOperationThrows_ReturnsFailureWithoutThrowing()
         {
             var engine = new RuleEngine(new ThrowingFileOperations());
@@ -267,6 +317,21 @@ namespace App.Core.Tests
             PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
 
             plan.ResolvedDestinationPath.Should().Be(@"D:\Archive\invoice.pdf");
+        }
+
+        [Fact]
+        public void PlanAction_Move_DestinationWithParentDirectoryToken_ResolvesDosStyle()
+        {
+            // "..\" should behave like it does in a DOS/Windows shell: go up one directory from
+            // the file's own folder, not end up as a literal ".." segment in the final path.
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"D:\folder1\begin", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"..\doel" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+
+            plan.ResolvedDestinationPath.Should().Be(@"D:\folder1\doel\invoice.pdf");
         }
 
         [Fact]

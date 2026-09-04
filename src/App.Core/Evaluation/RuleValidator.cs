@@ -137,7 +137,8 @@ namespace App.Core.Evaluation
             bool needsDestination = action.Type == ActionType.Move || action.Type == ActionType.Copy ||
                                      action.Type == ActionType.Rename || action.Type == ActionType.AddExtension ||
                                      action.Type == ActionType.CreateFolder || action.Type == ActionType.Zip ||
-                                     action.Type == ActionType.OpenWith || action.Type == ActionType.ExecuteExternal;
+                                     action.Type == ActionType.OpenWith || action.Type == ActionType.ExecuteExternal ||
+                                     action.Type == ActionType.DeleteTargetIfExists;
 
             if (needsDestination && string.IsNullOrWhiteSpace(action.Destination))
             {

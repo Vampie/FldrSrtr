@@ -54,7 +54,8 @@ namespace FldrSrtr
             [ActionType.CreateFolder] = "Maakt de map in Destination aan als die nog niet bestaat (bv. om alvast een archiefmap klaar te zetten).",
             [ActionType.AddExtension] = "Voegt een extensie toe aan de bestandsnaam. Destination is enkel de extensie (zonder punt), bv. 'bak' maakt van 'file.pdf' -> 'file.pdf.bak'.",
             [ActionType.RemoveExtension] = "Verwijdert de huidige extensie, bv. 'file.pdf' -> 'file'. Geen Destination nodig.",
-            [ActionType.Zip] = "Voegt het bestand toe aan het zip-archief in Destination (wordt aangemaakt als het nog niet bestaat)."
+            [ActionType.Zip] = "Voegt het bestand toe aan het zip-archief in Destination (wordt aangemaakt als het nog niet bestaat).",
+            [ActionType.DeleteTargetIfExists] = "Verplaatst het bestand op Destination naar de Prullenbak, maar alleen als het bestaat — anders gebeurt er niets. Raakt niet aan het bestand dat deze regel verwerkt. Handig vlak vóór een Move/Copy naar diezelfde Destination."
         };
 
         private readonly Rule _rule;

@@ -139,6 +139,7 @@ namespace App.Core.Tests
         [InlineData(ActionType.CreateFolder)]
         [InlineData(ActionType.OpenWith)]
         [InlineData(ActionType.ExecuteExternal)]
+        [InlineData(ActionType.DeleteTargetIfExists)]
         public void ActionMissingDestination_IsFlagged(ActionType type)
         {
             var rule = ValidRule();

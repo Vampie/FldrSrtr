@@ -10,8 +10,8 @@ namespace App.Core.Execution
 
         /// <summary>
         /// Meaning depends on Action.Type: target file path for Move/Copy/Rename/AddExtension/
-        /// RemoveExtension, folder path for CreateFolder, zip path for Zip, application path for
-        /// OpenWith/ExecuteExternal. Null for DeleteToRecycleBin/Open.
+        /// RemoveExtension/DeleteTargetIfExists, folder path for CreateFolder, zip path for Zip,
+        /// application path for OpenWith/ExecuteExternal. Null for DeleteToRecycleBin/Open.
         /// </summary>
         public string ResolvedDestinationPath { get; set; }
 

@@ -94,7 +94,12 @@ namespace App.Core.Model
         RemoveExtension,
 
         /// <summary>Adds the file to the zip archive at Destination (created if missing).</summary>
-        Zip
+        Zip,
+
+        /// <summary>Deletes the file at Destination (variables resolved) to the Recycle Bin —
+        /// only if it exists; a no-op otherwise. Does not touch the file being processed itself —
+        /// useful right before a Move/Copy to that same Destination to clear the way first.</summary>
+        DeleteTargetIfExists
     }
 
     public enum ConflictResolution
