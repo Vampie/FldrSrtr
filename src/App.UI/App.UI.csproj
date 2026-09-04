@@ -24,8 +24,10 @@
          (portable rule still holds, this is just a folder living alongside it instead of inside
          it) so a pack can be added or edited without rebuilding. Source originals live in
          Resources/icons outside the repo. Active pack switched at startup (and live from
-         Settings) via AppSettings.IconSet — see IconSetProvider/IconPathConverter. -->
+         Settings) via AppSettings.IconSet — see IconSetProvider/IconPathConverter. Each pack
+         folder also has an icons.json manifest (key -> actual filename) — see IconSetProvider. -->
     <None Include="IconSets\**\*.png" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="IconSets\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

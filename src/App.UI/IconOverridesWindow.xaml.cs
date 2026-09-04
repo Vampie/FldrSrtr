@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace FldrSrtr
@@ -48,6 +50,40 @@ namespace FldrSrtr
             {
                 row.OverridePath = null;
             }
+        }
+
+        private void SaveAsPack_Click(object sender, RoutedEventArgs e)
+        {
+            var prompt = new TextPromptWindow("Naam voor de nieuwe icoonset:", "Bewaren als set") { Owner = this };
+            if (prompt.ShowDialog() != true || string.IsNullOrWhiteSpace(prompt.Value))
+            {
+                return;
+            }
+
+            string packName = prompt.Value;
+            if (packName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                MessageBox.Show(this, "De naam mag geen tekens bevatten die niet in een mapnaam mogen (bv. \\ / : * ? \" < > |).",
+                    "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string packFolder = Path.Combine(IconSetProvider.IconSetsRootFolder, packName);
+            if (Directory.Exists(packFolder))
+            {
+                MessageBoxResult overwrite = MessageBox.Show(this, $"Er bestaat al een icoonset met de naam '{packName}'. Overschrijven?",
+                    "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (overwrite != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            Dictionary<string, string> keyToSourceFile = _rows.ToDictionary(row => row.Key, row => row.PreviewPath);
+            IconSetProvider.SavePack(packName, keyToSourceFile);
+
+            MessageBox.Show(this, $"Icoonset '{packName}' is bewaard en meteen beschikbaar bij Icoonset in Settings.",
+                "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)

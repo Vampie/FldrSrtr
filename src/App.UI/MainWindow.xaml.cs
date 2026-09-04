@@ -708,7 +708,16 @@ namespace FldrSrtr
         private void IconOverrides_Click(object sender, RoutedEventArgs e)
         {
             var window = new IconOverridesWindow(_config.Settings.IconOverrides) { Owner = this };
-            if (window.ShowDialog() != true)
+            bool saved = window.ShowDialog() == true;
+
+            // Refresh regardless of DialogResult — "Bewaren als set..." inside that window can
+            // create a new pack independently of whether Save/Cancel was hit afterward, and it
+            // should show up in the dropdown right away.
+            string currentSelection = IconSetComboBox.SelectedItem as string;
+            IconSetComboBox.ItemsSource = IconSetProvider.GetAvailableIconSets();
+            IconSetComboBox.SelectedItem = currentSelection;
+
+            if (!saved)
             {
                 return;
             }

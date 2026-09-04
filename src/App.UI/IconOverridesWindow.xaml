@@ -12,7 +12,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,12"
-                   Text="Wijs voor elk icoontje eventueel een eigen afbeelding toe (PNG). Zonder eigen keuze wordt de actieve icoonset (Settings) gebruikt, of de Default-set als die het icoontje niet heeft." />
+                   Text="Wijs voor elk icoontje eventueel een eigen afbeelding toe (PNG). Zonder eigen keuze wordt de actieve icoonset (Settings) gebruikt, of de Default-set als die het icoontje niet heeft. Met 'Bewaren als set...' bewaar je de iconen die je nu ziet (eigen keuzes + de rest) als een nieuwe, herbruikbare icoonset in Settings." />
 
         <ListBox Grid.Row="1" x:Name="RowsListBox">
             <ListBox.ItemTemplate>
@@ -39,9 +39,17 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Cancel" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
-            <Button Content="Save" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Width="90" Click="Save_Click" IsDefault="True" />
-        </StackPanel>
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Bewaren als set..." Tag="Icons/icon-add-folder.png" Style="{StaticResource IconButton}"
+                    HorizontalAlignment="Left" Click="SaveAsPack_Click" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="Cancel" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
+                <Button Content="Save" Tag="Icons/icon-save.png" Style="{StaticResource IconButton}" Width="90" Click="Save_Click" IsDefault="True" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

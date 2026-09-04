@@ -35,8 +35,13 @@ namespace FldrSrtr
                     return OverridePath;
                 }
 
-                string inActiveSet = Path.Combine(IconSetProvider.BasePath, Key);
-                return File.Exists(inActiveSet) ? inActiveSet : Path.Combine(IconSetProvider.DefaultSetFolder, Key);
+                string inActiveSet = Path.Combine(IconSetProvider.BasePath, IconSetProvider.ResolveFileName(IconSetProvider.BasePath, Key));
+                if (File.Exists(inActiveSet))
+                {
+                    return inActiveSet;
+                }
+
+                return Path.Combine(IconSetProvider.DefaultSetFolder, IconSetProvider.ResolveFileName(IconSetProvider.DefaultSetFolder, Key));
             }
         }
 

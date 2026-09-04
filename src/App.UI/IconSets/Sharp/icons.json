@@ -1,0 +1,23 @@
+﻿{
+    "icon-add.png":  "icon-add.png",
+    "icon-add-folder.png":  "icon-add-folder.png",
+    "icon-browse.png":  "icon-browse.png",
+    "icon-cancel.png":  "icon-cancel.png",
+    "icon-delete.png":  "icon-delete.png",
+    "icon-edit.png":  "icon-edit.png",
+    "icon-export.png":  "icon-export.png",
+    "icon-import.png":  "icon-import.png",
+    "icon-insert-variable.png":  "icon-insert-variable.png",
+    "icon-inspect.png":  "icon-inspect.png",
+    "icon-open-folder.png":  "icon-open-folder.png",
+    "icon-overwrite.png":  "icon-overwrite.png",
+    "icon-refresh.png":  "icon-refresh.png",
+    "icon-remove.png":  "icon-remove.png",
+    "icon-remove-folder.png":  "icon-remove-folder.png",
+    "icon-run.png":  "icon-run.png",
+    "icon-save.png":  "icon-save.png",
+    "icon-scan.png":  "icon-scan.png",
+    "icon-settings.png":  "icon-settings.png",
+    "icon-skip.png":  "icon-skip.png",
+    "icon-undo.png":  "icon-undo.png"
+}

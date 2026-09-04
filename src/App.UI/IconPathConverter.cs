@@ -31,13 +31,13 @@ namespace FldrSrtr
                 return overridePath;
             }
 
-            string inActiveSet = Path.Combine(IconSetProvider.BasePath, fileName);
+            string inActiveSet = Path.Combine(IconSetProvider.BasePath, IconSetProvider.ResolveFileName(IconSetProvider.BasePath, fileName));
             if (File.Exists(inActiveSet))
             {
                 return inActiveSet;
             }
 
-            string inDefaultSet = Path.Combine(IconSetProvider.DefaultSetFolder, fileName);
+            string inDefaultSet = Path.Combine(IconSetProvider.DefaultSetFolder, IconSetProvider.ResolveFileName(IconSetProvider.DefaultSetFolder, fileName));
             return File.Exists(inDefaultSet) ? inDefaultSet : null;
         }
 
