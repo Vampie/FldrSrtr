@@ -169,12 +169,42 @@ namespace App.Core.Execution
                     {
                         string template = action.Destination ?? string.Empty;
                         string resolved = MakeAbsolute(VariableResolver.Resolve(template, file, currentPath, effectiveNow, counterResolver), currentPath);
-                        bool includesFileName = template.Contains("{FileName}") || template.Contains("{OriginalName}");
-                        string desired = includesFileName ? resolved : Path.Combine(resolved, Path.GetFileName(currentPath));
+                        string desired = IsFullFilePathTemplate(template, resolved)
+                            ? resolved
+                            : Path.Combine(resolved, Path.GetFileName(currentPath));
                         plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
                         return plan;
                     }
             }
+        }
+
+        /// <summary>
+        /// Decides whether a Move/Copy Destination template names a destination *folder*
+        /// (append the current filename, the common case) or is itself a full file path already.
+        /// A trailing slash always means "folder" (the escape hatch for an edge case below).
+        /// {FileName}/{OriginalName} in the template is an explicit "this is a full path" signal.
+        /// Otherwise, infer it from whether the resolved template's last segment looks like it
+        /// has a file extension — this is what makes a destination like
+        /// "tst\{Extension}_{Counter:1:1}.{Extension}" resolve to "tst\html_9.html" directly
+        /// instead of being (wrongly) treated as a folder named "html_9.html" with the original
+        /// filename appended underneath it. The one case this can get wrong is a genuine
+        /// destination *folder* whose name itself contains a dot (e.g. "Archive\v1.2") — add a
+        /// trailing slash to force the folder interpretation there.
+        /// </summary>
+        private static bool IsFullFilePathTemplate(string template, string resolved)
+        {
+            if (template.EndsWith("\\") || template.EndsWith("/"))
+            {
+                return false;
+            }
+
+            if (template.Contains("{FileName}") || template.Contains("{OriginalName}"))
+            {
+                return true;
+            }
+
+            string lastSegment = Path.GetFileName(resolved.TrimEnd('\\', '/'));
+            return !string.IsNullOrEmpty(Path.GetExtension(lastSegment));
         }
 
         /// <summary>

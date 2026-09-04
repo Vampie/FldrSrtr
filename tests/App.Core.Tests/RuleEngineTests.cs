@@ -312,6 +312,58 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void PlanAction_Copy_DestinationBuiltFromNonFileNameTokens_StillTreatedAsFullPath()
+        {
+            // Reported bug: a Destination built entirely from tokens other than {FileName}/
+            // {OriginalName} (here {Extension} + {Counter}) still ends in a real file name once
+            // resolved, but the old heuristic only recognized {FileName}/{OriginalName} as "this
+            // is a full path" — so it treated "tst\html_9.html" as a *folder* and appended the
+            // original filename underneath it, producing ".../tst/html_9.html/original.html".
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "2024_ARCHIVE_landing___backup_026.html");
+            var action = new RuleAction { Type = ActionType.Copy, Destination = @"tst\{Extension}_9.{Extension}" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+
+            plan.ResolvedDestinationPath.Should().Be(@"C:\Downloads\tst\html_9.html");
+        }
+
+        [Fact]
+        public void ExecuteRule_Copy_DestinationBuiltFromCounterAndExtension_ReproducesExactReportedRule()
+        {
+            // The exact rule.json shape from the bug report, including the real {Counter} plumbing.
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Testfiles", "2024_ARCHIVE_landing___backup_026.html");
+            var rule = MakeMatchAllRule(new RuleAction { Type = ActionType.Copy, Destination = @"tst\{Extension}_{Counter:1:1}.{Extension}", OnConflict = ConflictResolution.Rename });
+            rule.RootCondition.Children.Clear();
+            rule.RootCondition.Children.Add(new ConditionNode { Field = ConditionField.Extension, Operator = ConditionOperator.Contains, Value = "ml" });
+
+            List<ExecutionResult> results = engine.ExecuteRule(rule, new[] { file }, dryRun: false);
+
+            results.Should().ContainSingle();
+            results[0].Plan.ResolvedDestinationPath.Should().Be(@"C:\Testfiles\tst\html_1.html");
+            fileOps.Copied.Should().ContainSingle(c => c.To == @"C:\Testfiles\tst\html_1.html");
+        }
+
+        [Fact]
+        public void PlanAction_Move_DestinationFolderNameContainingDot_NeedsTrailingSlashToStayAFolder()
+        {
+            // The extension-sniffing heuristic's known edge case: a genuine destination *folder*
+            // whose name contains a dot looks like it has a file extension. A trailing slash is
+            // the escape hatch that forces the folder interpretation.
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive\v1.2\" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+
+            plan.ResolvedDestinationPath.Should().Be(@"D:\Archive\v1.2\invoice.pdf");
+        }
+
+        [Fact]
         public void Execute_AddExtension_AppendsToCurrentName()
         {
             var fileOps = new FakeFileOperations();
