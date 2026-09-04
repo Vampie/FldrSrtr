@@ -27,7 +27,7 @@
                             <Button Content="Kopieer" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Click="QuickActionCopy_Click" />
                         </StackPanel>
                         <TextBlock Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
-                                   Text="Verplaatst of kopieert alle bestanden uit de bronmap (niet recursief) naar Destination — zonder dat je hiervoor een folder/regel moet aanmaken. Destination mag variabelen bevatten (bv. ..\{CreatedYear}_{CreatedMonth}\{OriginalName}.{OriginalExtension}) en wordt voor elk bestand apart herberekend. Bronmap en Destination worden bewaard en staan klaar bij het openen van FldrSrtr." />
+                                   Text="Verplaatst of kopieert alle bestanden uit de bronmap (niet recursief) naar Destination — zonder dat je hiervoor een folder/regel moet aanmaken. Destination mag variabelen bevatten (bv. ..\{ModifiedYear}_{ModifiedMonth}\{OriginalName}.{OriginalExtension}) en wordt voor elk bestand apart herberekend. Gebruik hiervoor Modified in plaats van Created: Windows zet de aanmaakdatum vaak terug op 'nu' zodra een bestand gekopieerd/gedownload wordt, waardoor alles toch in dezelfde map terechtkomt. Bronmap en Destination worden bewaard en staan klaar bij het openen van FldrSrtr." />
                     </StackPanel>
                 </Border>
 

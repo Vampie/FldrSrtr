@@ -360,6 +360,28 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void PlanAction_Move_ModifiedYearDestination_UsesModifiedNotCreated()
+        {
+            // What actually caused the "everything landed in one folder" report: on Windows,
+            // copying/downloading a file typically resets its Created timestamp to "now" while
+            // preserving Modified — a batch of files copied together at once can show one shared
+            // CreatedUtc despite having wildly different, genuinely-varying ModifiedUtc values.
+            // {ModifiedYear}/{ModifiedMonth} is the reliable choice for "the file's real date" in
+            // that (very common) situation. Pin down that it reads ModifiedUtc, not CreatedUtc.
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"..\{ModifiedYear}_{ModifiedMonth}\{OriginalName}.{OriginalExtension}" };
+
+            var file = MakeFile(@"D:\folder1\begin", "invoice.pdf");
+            file.CreatedUtc = new System.DateTime(2026, 9, 4);   // identical "copied just now" timestamp
+            file.ModifiedUtc = new System.DateTime(2026, 3, 15); // the file's real, original date
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+
+            plan.ResolvedDestinationPath.Should().Be(@"D:\folder1\2026_03\invoice.pdf");
+        }
+
+        [Fact]
         public void PlanAction_CreateFolder_RelativeDestination_AnchorsToFilesOwnDirectory()
         {
             var fileOps = new FakeFileOperations();

@@ -69,7 +69,10 @@
                     <TextBlock Grid.Row="6" Grid.Column="0" Text="{}{FileName} {Extension} {FullPath} {Directory} {FileSize} ..." FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" />
                     <TextBlock Grid.Row="6" Grid.Column="1" Text="Eigenschappen van het bestand zelf (huidige naam/pad — verandert mee als een eerdere actie al hernoemd heeft)." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
                     <TextBlock Grid.Row="7" Grid.Column="0" Text="{}{CreatedYear} ... {CreatedTime}" FontFamily="Consolas" FontSize="11" />
-                    <TextBlock Grid.Row="7" Grid.Column="1" Text="Aanmaakdatum/-tijd van het bestand." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4" />
+                    <TextBlock Grid.Row="7" Grid.Column="1" TextWrapping="Wrap" FontSize="11" Margin="8,0,0,4">
+                        <Run Text="Aanmaakdatum/-tijd van het bestand. " />
+                        <Run Text="Let op: Windows zet deze vaak terug op 'nu' zodra een bestand gekopieerd/gedownload wordt — voor de oorspronkelijke datum is Modified meestal betrouwbaarder." Foreground="Gray" />
+                    </TextBlock>
                     <TextBlock Grid.Row="8" Grid.Column="0" Text="{}{ModifiedYear} ... {ModifiedTime}" FontFamily="Consolas" FontSize="11" />
                     <TextBlock Grid.Row="8" Grid.Column="1" Text="Wijzigingsdatum/-tijd van het bestand." TextWrapping="Wrap" FontSize="11" Margin="8,0,0,12" />
 
