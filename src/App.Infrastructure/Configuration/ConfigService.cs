@@ -1,6 +1,7 @@
 using System.IO;
 using App.Core.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace App.Infrastructure.Configuration
 {
@@ -11,6 +12,12 @@ namespace App.Infrastructure.Configuration
     public class ConfigService
     {
         private readonly string _configFilePath;
+
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            Formatting = Formatting.Indented,
+            Converters = { new StringEnumConverter() }
+        };
 
         public ConfigService(string configFilePath = null)
         {
@@ -27,12 +34,12 @@ namespace App.Infrastructure.Configuration
             }
 
             string json = File.ReadAllText(_configFilePath);
-            return JsonConvert.DeserializeObject<AppConfig>(json) ?? AppConfig.CreateDefault();
+            return JsonConvert.DeserializeObject<AppConfig>(json, SerializerSettings) ?? AppConfig.CreateDefault();
         }
 
         public void Save(AppConfig config)
         {
-            string json = JsonConvert.SerializeObject(config, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(config, SerializerSettings);
             File.WriteAllText(_configFilePath, json);
         }
     }
