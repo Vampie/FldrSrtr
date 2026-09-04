@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using App.Core.Model;
 
-namespace FoldrSortr
+namespace FldrSrtr
 {
     public partial class FolderSettingsWindow : Window
     {

@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using App.Core.Model;
 
-namespace FoldrSortr
+namespace FldrSrtr
 {
     public partial class RuleEditorWindow : Window
     {
@@ -205,7 +205,7 @@ namespace FoldrSortr
         {
             if (string.IsNullOrWhiteSpace(NameTextBox.Text))
             {
-                MessageBox.Show(this, "Geef de regel een naam.", "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, "Geef de regel een naam.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

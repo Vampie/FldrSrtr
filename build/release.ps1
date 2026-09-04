@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Bouwt FoldrSortr in Release-configuratie en verpakt het resultaat als portable zip.
+    Bouwt FldrSrtr in Release-configuratie en verpakt het resultaat als portable zip.
     Geen installer, geen snelkoppelingen, geen registry-writes — alles naast de exe.
 
 .PARAMETER Version
@@ -17,16 +17,16 @@ param(
 $ErrorActionPreference = "Stop"
 
 $RepoRoot   = Split-Path -Parent $PSScriptRoot
-$SlnPath    = Join-Path $RepoRoot "FoldrSortr.slnx"
+$SlnPath    = Join-Path $RepoRoot "FldrSrtr.slnx"
 $UiProject  = Join-Path $RepoRoot "src\App.UI\App.UI.csproj"
 $IconPng    = Join-Path $RepoRoot "fldrsrtr.png"
 $PublishSrc = Join-Path $RepoRoot "src\App.UI\bin\Release\net481"
 
-$StagingDir = Join-Path $RepoRoot "release\FoldrSortr-$Version"
-$ZipPath    = Join-Path $RepoRoot "release\FoldrSortr-$Version.zip"
+$StagingDir = Join-Path $RepoRoot "release\FldrSrtr-$Version"
+$ZipPath    = Join-Path $RepoRoot "release\FldrSrtr-$Version.zip"
 $ShaPath    = "$ZipPath.sha256"
 
-Write-Host "== FoldrSortr release build v$Version ==" -ForegroundColor Cyan
+Write-Host "== FldrSrtr release build v$Version ==" -ForegroundColor Cyan
 
 Write-Host "-- Bouwen (Release) --"
 dotnet build $SlnPath -c Release

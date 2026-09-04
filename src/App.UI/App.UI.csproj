@@ -7,8 +7,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
-    <RootNamespace>FoldrSortr</RootNamespace>
-    <AssemblyName>FoldrSortr</AssemblyName>
+    <RootNamespace>FldrSrtr</RootNamespace>
+    <AssemblyName>FldrSrtr</AssemblyName>
     <ApplicationIcon>..\..\assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
 

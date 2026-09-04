@@ -1,8 +1,8 @@
-<Window x:Class="FoldrSortr.RuleEditorWindow"
+<Window x:Class="FldrSrtr.RuleEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:model="clr-namespace:App.Core.Model;assembly=App.Core"
-        xmlns:local="clr-namespace:FoldrSortr"
+        xmlns:local="clr-namespace:FldrSrtr"
         Title="Rule editor" Height="700" Width="900"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>

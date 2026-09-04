@@ -28,8 +28,8 @@ namespace App.Infrastructure.Configuration
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
             {
                 throw new InvalidOperationException(
-                    $"FoldrSortr kan niet schrijven naar zijn eigen map:\n{BaseDirectory}\n\n" +
-                    "FoldrSortr is portable en heeft schrijfrechten nodig in de map waarin het staat " +
+                    $"FldrSrtr kan niet schrijven naar zijn eigen map:\n{BaseDirectory}\n\n" +
+                    "FldrSrtr is portable en heeft schrijfrechten nodig in de map waarin het staat " +
                     "(voor config.json en het activity-log). Verplaats de map naar een locatie waar je " +
                     "schrijfrechten hebt, bijvoorbeeld je Documenten-map, en start opnieuw.",
                     ex);

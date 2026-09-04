@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using App.Core.Model;
 
-namespace FoldrSortr
+namespace FldrSrtr
 {
     public class ConditionNodeLabelConverter : IValueConverter
     {

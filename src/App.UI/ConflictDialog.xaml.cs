@@ -1,7 +1,7 @@
 using System.Windows;
 using App.Core.Model;
 
-namespace FoldrSortr
+namespace FldrSrtr
 {
     public partial class ConflictDialog : Window
     {

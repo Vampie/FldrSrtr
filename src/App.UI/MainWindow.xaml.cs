@@ -14,7 +14,7 @@ using App.Infrastructure.Execution;
 using App.Infrastructure.Safety;
 using App.Infrastructure.Scanning;
 
-namespace FoldrSortr
+namespace FldrSrtr
 {
     public partial class MainWindow : Window
     {
@@ -76,8 +76,8 @@ namespace FoldrSortr
                 return;
             }
 
-            MessageBoxResult confirm = MessageBox.Show(this, $"Folder '{folder.Path}' verwijderen uit FoldrSortr?\n(De map zelf blijft bestaan.)",
-                "FoldrSortr", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult confirm = MessageBox.Show(this, $"Folder '{folder.Path}' verwijderen uit FldrSrtr?\n(De map zelf blijft bestaan.)",
+                "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm != MessageBoxResult.Yes)
             {
                 return;
@@ -92,7 +92,7 @@ namespace FoldrSortr
             WatchedFolder folder = SelectedFolder;
             if (folder == null || !_fileSystem.Directory.Exists(folder.Path))
             {
-                MessageBox.Show(this, "Deze map bestaat niet (meer).", "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, "Deze map bestaat niet (meer).", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -109,7 +109,7 @@ namespace FoldrSortr
 
             var files = _scanner.Scan(folder);
             MessageBox.Show(this, $"{files.Count} bestand(en) gevonden in {folder.Path}" +
-                (folder.Recursive ? " (recursief)." : "."), "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Information);
+                (folder.Recursive ? " (recursief)." : "."), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void FolderSettings_Click(object sender, RoutedEventArgs e)
@@ -132,7 +132,7 @@ namespace FoldrSortr
             WatchedFolder folder = SelectedFolder;
             if (folder == null)
             {
-                MessageBox.Show(this, "Selecteer eerst een folder.", "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, "Selecteer eerst een folder.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -180,7 +180,7 @@ namespace FoldrSortr
         {
             MessageBoxResult confirm = MessageBox.Show(this,
                 "Deze regel echt uitvoeren? Dit wijzigt bestanden op schijf.",
-                "FoldrSortr", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                "FldrSrtr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirm == MessageBoxResult.Yes)
             {
                 RunSelectedRule(dryRun: false);
@@ -193,7 +193,7 @@ namespace FoldrSortr
             Rule rule = SelectedRule;
             if (folder == null || rule == null)
             {
-                MessageBox.Show(this, "Selecteer een folder en een regel.", "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this, "Selecteer een folder en een regel.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

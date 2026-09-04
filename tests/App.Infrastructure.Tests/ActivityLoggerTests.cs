@@ -13,7 +13,7 @@ namespace App.Infrastructure.Tests
 
         public ActivityLoggerTests()
         {
-            _tempDir = Path.Combine(Path.GetTempPath(), "FoldrSortrTests_" + Guid.NewGuid().ToString("N"));
+            _tempDir = Path.Combine(Path.GetTempPath(), "FldrSrtrTests_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(_tempDir);
             _logPath = Path.Combine(_tempDir, "activity.jsonl");
         }

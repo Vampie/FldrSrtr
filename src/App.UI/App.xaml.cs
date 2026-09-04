@@ -1,7 +1,7 @@
 using System.Windows;
 using App.Infrastructure.Configuration;
 
-namespace FoldrSortr
+namespace FldrSrtr
 {
     public partial class App : Application
     {
@@ -15,7 +15,7 @@ namespace FoldrSortr
             }
             catch (System.InvalidOperationException ex)
             {
-                MessageBox.Show(ex.Message, "FoldrSortr", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Error);
                 Shutdown(1);
                 return;
             }

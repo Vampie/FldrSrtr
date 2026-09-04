@@ -2,7 +2,7 @@ using System.Windows;
 using App.Core.Execution;
 using App.Core.Model;
 
-namespace FoldrSortr
+namespace FldrSrtr
 {
     public class WpfConflictPrompt : IConflictPrompt
     {

@@ -1,4 +1,4 @@
-namespace FoldrSortr
+namespace FldrSrtr
 {
     /// <summary>UI-only row shown in the dry-run / run results grid. Never crosses into Core.</summary>
     public class PreviewRow

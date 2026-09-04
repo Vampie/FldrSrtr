@@ -1,4 +1,4 @@
-# FoldrSortr — Projectbrief & instructies voor Claude Code
+# FldrSrtr — Projectbrief & instructies voor Claude Code
 
 Dit document is het volledige, zelfstandige startpunt voor dit project. Het bevat alles wat eerder is uitgewerkt: de functionele specificatie, de technologiebeslissing (met onderbouwing en overwogen alternatieven), de architectuur, en het gefaseerde implementatieplan. Een nieuwe Claude Code-sessie die dit bestand leest heeft alle context nodig om te starten — er hoeft niets uit een eerdere chat opgezocht te worden.
 
@@ -10,9 +10,9 @@ Dit document is het volledige, zelfstandige startpunt voor dit project. Het beva
 
 | | |
 |---|---|
-| **Naam** | FoldrSortr |
+| **Naam** | FldrSrtr |
 | **Lokaal pad** | `C:\claude_code\FldrSrtr` |
-| **Icoon** | `foldrsortr.png` (in het lokale pad hierboven) |
+| **Icoon** | `fldrsrtr.png` (in het lokale pad hierboven) |
 | **Git remote** | `https://github.com/Vampie/FldrSrtr.git` |
 | **Eigenaar** | Axel C. — Trustteam Group |
 
@@ -179,7 +179,7 @@ Automated tests voor: condition evaluation, AND/OR/NOT, nested conditions, regex
 Normale, **portable** Windows-applicatie:
 - executable
 - **GEEN installer**
-- application icon (`foldrsortr.png`)
+- application icon (`fldrsrtr.png`)
 - **GEEN** Start Menu-snelkoppeling
 - **GEEN** desktop-snelkoppeling
 - **GEEN** uninstall support
@@ -213,7 +213,7 @@ Ze zijn afgevallen omdat drie eisen uit dit document expliciet blijven staan en 
 - **GUI:** WPF + `ModernWpf` of `WPF-UI` (lepoco/wpfui) voor een Fluent-achtige, moderne look (.NET Framework heeft geen ingebouwd Fluent-thema — dat kwam pas met .NET 9). MVVM via `CommunityToolkit.Mvvm`. Drag-and-drop herordening via `GongSolutions.WPF.DragDrop`. Notificaties via `System.Windows.Forms.NotifyIcon.ShowBalloonTip` (geen extra dependency, geen tray-icoon, enkel een kortstondige melding na een handmatige run).
 - **Persistence:** configuratie (settings/folders/rules/exclusions) als JSON via `Newtonsoft.Json`, in een submap naast de `.exe` (`AppDomain.CurrentDomain.BaseDirectory`, nooit `%AppData%`/registry). `"schemaVersion"`-veld + migratiefuncties. Automatische timestamped backups vóór elke save. Activity-log als append-only **JSON Lines**-bestand (bewust géén SQLite — dat voegt een native dependency toe die niet nodig is zonder 24/7-achtergrondvolume).
 - **Testing:** `xUnit` + `FluentAssertions`, `System.IO.Abstractions` voor filesystem-mocking, integratietests uitsluitend in `Path.GetTempPath()`-tijdelijke mappen, `Verify.Xunit` voor dry-run-snapshottests. (Testtooling is build-/devtime, telt niet mee in de "weinig dependencies"-eis van de uitgeleverde app.)
-- **Installer:** geen. Eén PowerShell-releasescript: build → verzamelen (`.exe` + `Newtonsoft.Json.dll` + eventuele UI-styling-dll's + `foldrsortr.png` als icoon) → zippen, met versienummer en SHA-256-checksum.
+- **Installer:** geen. Eén PowerShell-releasescript: build → verzamelen (`.exe` + `Newtonsoft.Json.dll` + eventuele UI-styling-dll's + `fldrsrtr.png` als icoon) → zippen, met versienummer en SHA-256-checksum.
 
 ### Architectuur
 ```
@@ -247,7 +247,7 @@ Elke fase levert een werkend, zelf te starten portable resultaat op. Testen (§4
 - Architectuurtest die faalt zodra Core/Infrastructure naar UI verwijst.
 - Lege WPF-shell met de vijf hoofdsecties als placeholders.
 - Config lezen/schrijven relatief aan de exe-map, `"schemaVersion": 1`.
-- **PowerShell-releasescript** bouwen en op een schone map/machine testen (build → verzamelen → zippen, incl. `foldrsortr.png` als icoon).
+- **PowerShell-releasescript** bouwen en op een schone map/machine testen (build → verzamelen → zippen, incl. `fldrsrtr.png` als icoon).
 - **Definition of done:** portable exe start op een schone Windows-machine, toont een leeg venster, maakt `config.json` naast zichzelf aan.
 
 ### Fase 1 — MVP
@@ -294,7 +294,7 @@ Elke fase levert een werkend, zelf te starten portable resultaat op. Testen (§4
 
 ## 7. Eerste stappen voor deze Claude Code-sessie
 
-1. Bevestig dat de map `C:\claude_code\FldrSrtr` bestaat en dat `foldrsortr.png` daar aanwezig is.
+1. Bevestig dat de map `C:\claude_code\FldrSrtr` bestaat en dat `fldrsrtr.png` daar aanwezig is.
 2. Initialiseer git in die map en koppel de remote:
    ```
    git init
