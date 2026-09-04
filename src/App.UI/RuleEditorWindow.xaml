@@ -3,20 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:model="clr-namespace:App.Core.Model;assembly=App.Core"
         xmlns:local="clr-namespace:FldrSrtr"
-        Title="Rule editor" Height="740" Width="960"
+        Title="Rule editor" Height="900" Width="1000"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <local:ConditionNodeLabelConverter x:Key="NodeLabelConverter" />
+        <local:ActionLabelConverter x:Key="ActionLabelConverter" />
     </Window.Resources>
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="260" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="240" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="240" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -29,16 +30,33 @@
         </StackPanel>
 
         <Border Grid.Row="1" x:Name="VariableHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="8" Margin="0,0,0,8">
-            <TextBlock TextWrapping="Wrap" FontFamily="Consolas">
-                Variabelen (in Destination/Arguments): {FileName} {OriginalName} {Extension} {OriginalExtension} {FullPath} {Directory} {FileSize} {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}
+            <TextBlock TextWrapping="Wrap" FontFamily="Consolas" FontSize="11">
+                Variabelen (in Destination/Arguments) — klik "Insert variable" bij een actie, of typ ze zelf:
                 <LineBreak />
-                Voorbeeld: D:\Archief\{Year}\{Month}\{FileName}.{Extension}
+                Van vandaag: {FileName} {OriginalName} {Extension} {OriginalExtension} {FullPath} {Directory} {FileSize} {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}
+                <LineBreak />
+                Van het bestand zelf: {CreatedYear} {CreatedMonth} {CreatedDay} {CreatedDate} {CreatedTime} — en dezelfde set met "Modified" i.p.v. "Created"
+                <LineBreak />
+                Voorbeeld: D:\Archief\{Year}\{Month}\{FileName}.{Extension} — een niet-bestaande submap wordt automatisch aangemaakt.
             </TextBlock>
         </Border>
 
-        <TextBlock Text="Conditions:" FontWeight="Bold" Grid.Row="2" Margin="0,0,0,4" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock Text="Conditions:" FontWeight="Bold" VerticalAlignment="Center" />
+            <ToggleButton x:Name="ConditionsHelpToggle" Content="Hoe werkt dit?" Margin="12,0,0,0" Padding="6,0"
+                          Checked="ConditionsHelpToggle_Changed" Unchecked="ConditionsHelpToggle_Changed" />
+        </StackPanel>
 
-        <Grid Grid.Row="3">
+        <Border Grid.Row="3" x:Name="ConditionsHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="8" Margin="0,0,0,8">
+            <TextBlock TextWrapping="Wrap" FontSize="11">
+                Een <Bold>groep</Bold> combineert condities of andere groepen: <Bold>ALL</Bold> = moeten allemaal kloppen (AND),
+                <Bold>ANY</Bold> = minstens één moet kloppen (OR), <Bold>NOT</Bold> = het tegenovergestelde (moet NIET kloppen).
+                Groepen kunnen genest worden voor complexere logica, bv. "extensie is pdf ÉN (naam bevat 'factuur' OF naam bevat 'invoice')".
+                Klik op een groep om er een conditie of nieuwe (geneste) groep aan toe te voegen; klik op een conditie om die te bewerken.
+            </TextBlock>
+        </Border>
+
+        <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="340" />
                 <ColumnDefinition Width="*" />
@@ -46,6 +64,11 @@
 
             <TreeView x:Name="ConditionsTree" Grid.Column="0" Margin="0,0,8,0"
                       SelectedItemChanged="ConditionsTree_SelectedItemChanged">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="True" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type model:ConditionNode}" ItemsSource="{Binding Children}">
                         <TextBlock Text="{Binding Converter={StaticResource NodeLabelConverter}}" />
@@ -77,9 +100,15 @@
                         <TextBlock Text="Operator:" Width="70" VerticalAlignment="Center" />
                         <ComboBox x:Name="OperatorComboBox" Width="150" SelectionChanged="LeafField_Changed" />
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <StackPanel x:Name="TextValuePanel" Orientation="Horizontal" Margin="0,0,0,6">
                         <TextBlock Text="Value:" Width="70" VerticalAlignment="Center" />
                         <TextBox x:Name="ValueTextBox" Width="220" TextChanged="LeafField_Changed" />
+                    </StackPanel>
+                    <StackPanel x:Name="DateValuePanel" Orientation="Horizontal" Margin="0,0,0,6" Visibility="Collapsed">
+                        <TextBlock Text="Date:" Width="70" VerticalAlignment="Center" />
+                        <DatePicker x:Name="DateFromPicker" Width="130" SelectedDateChanged="DatePicker_Changed" />
+                        <TextBlock x:Name="DateToLabel" Text=" tot " VerticalAlignment="Center" Visibility="Collapsed" />
+                        <DatePicker x:Name="DateToPicker" Width="130" SelectedDateChanged="DatePicker_Changed" Visibility="Collapsed" />
                     </StackPanel>
                     <CheckBox x:Name="CaseSensitiveCheckBox" Content="Case-sensitive" Margin="70,0,0,10" Checked="LeafField_Changed" Unchecked="LeafField_Changed" />
                     <TextBlock x:Name="DuplicateHintText" Text="Tip: bij Field 'Duplicate' is Value 'true' of 'false'." Foreground="Gray" Margin="70,0,0,10" Visibility="Collapsed" />
@@ -88,30 +117,67 @@
             </StackPanel>
         </Grid>
 
-        <TextBlock Text="Actions (uitgevoerd in volgorde):" FontWeight="Bold" Grid.Row="4" Margin="0,12,0,4" />
+        <TextBlock Text="Actions (uitgevoerd in volgorde):" FontWeight="Bold" Grid.Row="5" Margin="0,12,0,4" />
 
-        <DataGrid x:Name="ActionsGrid" Grid.Row="5" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding}">
-            <DataGrid.Columns>
-                <DataGridComboBoxColumn x:Name="ActionTypeColumn" Header="Action" SelectedItemBinding="{Binding Type}" Width="130" />
-                <DataGridTextColumn Header="Destination / new name" Binding="{Binding Destination}" Width="*" />
-                <DataGridTextColumn Header="Arguments (ExecuteExternal)" Binding="{Binding Arguments}" Width="180" />
-                <DataGridComboBoxColumn x:Name="OnConflictColumn" Header="On conflict" SelectedItemBinding="{Binding OnConflict}" Width="110" />
-                <DataGridTemplateColumn Header="" Width="150">
-                    <DataGridTemplateColumn.CellTemplate>
+        <Grid Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="0" Margin="0,0,8,0">
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,4,0,0">
+                    <Button Content="+ Add" Margin="0,0,4,0" Click="AddAction_Click" />
+                    <Button Content="Up" Margin="0,0,4,0" Click="MoveActionUp_Click" />
+                    <Button Content="Down" Margin="0,0,4,0" Click="MoveActionDown_Click" />
+                    <Button Content="Remove" Click="RemoveAction_Click" />
+                </StackPanel>
+                <ListBox x:Name="ActionsList" SelectionChanged="ActionsList_SelectionChanged">
+                    <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="Up" Width="40" Click="MoveActionUp_Click" />
-                                <Button Content="Down" Width="50" Click="MoveActionDown_Click" />
-                                <Button Content="Remove" Click="RemoveAction_Click" />
-                            </StackPanel>
+                            <TextBlock Text="{Binding Converter={StaticResource ActionLabelConverter}}" />
                         </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-        <Button Content="+ Add action" Grid.Row="6" HorizontalAlignment="Left" Margin="0,4,0,12" Click="AddAction_Click" />
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right">
+            <StackPanel Grid.Column="1" x:Name="ActionDetailsPanel">
+                <TextBlock x:Name="NoActionSelectedText" Text="Selecteer een actie hiernaast, of voeg er een toe." />
+
+                <StackPanel x:Name="ActionFieldsPanel" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <TextBlock Text="Action:" Width="90" VerticalAlignment="Center" />
+                        <ComboBox x:Name="ActionTypeComboBox" Width="150" SelectionChanged="ActionType_Changed" />
+                    </StackPanel>
+                    <TextBlock x:Name="ActionHelpText" Foreground="Gray" TextWrapping="Wrap" Margin="90,0,0,10" Width="500" HorizontalAlignment="Left" />
+
+                    <StackPanel x:Name="DestinationPanel" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="DestinationLabel" Text="Destination:" Width="90" VerticalAlignment="Center" />
+                            <TextBox x:Name="DestinationTextBox" Width="420" TextChanged="ActionField_Changed" />
+                        </StackPanel>
+                        <Button x:Name="InsertDestinationVariableButton" Content="Insert variable ▾" HorizontalAlignment="Left"
+                                Margin="90,4,0,0" Click="InsertDestinationVariable_Click" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="ArgumentsPanel" Margin="0,0,0,10" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Arguments:" Width="90" VerticalAlignment="Center" />
+                            <TextBox x:Name="ArgumentsTextBox" Width="420" TextChanged="ActionField_Changed" />
+                        </StackPanel>
+                        <Button x:Name="InsertArgumentsVariableButton" Content="Insert variable ▾" HorizontalAlignment="Left"
+                                Margin="90,4,0,0" Click="InsertArgumentsVariable_Click" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="OnConflictPanel" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="On conflict:" Width="90" VerticalAlignment="Center" />
+                        <ComboBox x:Name="OnConflictComboBox" Width="150" SelectionChanged="ActionField_Changed" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Content="Cancel" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
             <Button Content="Save" Width="90" Click="Save_Click" IsDefault="True" />
         </StackPanel>

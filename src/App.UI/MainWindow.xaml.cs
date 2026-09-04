@@ -71,16 +71,14 @@ namespace FldrSrtr
 
         private void AddFolder_Click(object sender, RoutedEventArgs e)
         {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            string path = ModernFolderPicker.PickFolder("Selecteer een map om te volgen");
+            if (path == null)
             {
-                if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                {
-                    return;
-                }
-
-                _config.Folders.Add(new WatchedFolder { Path = dialog.SelectedPath });
-                SaveConfig();
+                return;
             }
+
+            _config.Folders.Add(new WatchedFolder { Path = path });
+            SaveConfig();
         }
 
         private void RemoveFolder_Click(object sender, RoutedEventArgs e)
@@ -566,12 +564,10 @@ namespace FldrSrtr
 
         private void BrowseProtectedFolder_Click(object sender, RoutedEventArgs e)
         {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            string path = ModernFolderPicker.PickFolder("Selecteer een beschermde map");
+            if (path != null)
             {
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    NewProtectedFolderTextBox.Text = dialog.SelectedPath;
-                }
+                NewProtectedFolderTextBox.Text = path;
             }
         }
 

@@ -5,28 +5,47 @@
     Geen installer, geen snelkoppelingen, geen registry-writes — alles naast de exe.
 
 .PARAMETER Version
-    Versienummer voor de release (bv. "0.1.0"). Wordt gebruikt in de bestandsnaam van de zip.
+    Major.Minor voor de release (bv. "1.0" of "1.0.0" — het patch-cijfer dat je hier meegeeft
+    wordt genegeerd). Het patch-cijfer van de uiteindelijke versie is een doorlopende, in git
+    bijgehouden bouw-teller (build/.build-counter) die bij elke build met 1 ophoogt, ongeacht
+    welke Major.Minor je meegeeft. Voorbeeld: eerste build met -Version 1.0.0 -> 1.0.1, de tiende
+    build (zelfde -Version) -> 1.0.10, en een daaropvolgende build met -Version 1.2 -> 1.2.11.
 
 .EXAMPLE
-    .\build\release.ps1 -Version 0.1.0
+    .\build\release.ps1 -Version 1.0
 #>
 param(
-    [string]$Version = "0.0.0-dev"
+    [string]$Version = "0.0"
 )
 
 $ErrorActionPreference = "Stop"
 
-$RepoRoot   = Split-Path -Parent $PSScriptRoot
-$SlnPath    = Join-Path $RepoRoot "FldrSrtr.slnx"
-$UiProject  = Join-Path $RepoRoot "src\App.UI\App.UI.csproj"
-$IconPng    = Join-Path $RepoRoot "fldrsrtr.png"
-$PublishSrc = Join-Path $RepoRoot "src\App.UI\bin\Release\net481"
+$RepoRoot     = Split-Path -Parent $PSScriptRoot
+$SlnPath      = Join-Path $RepoRoot "FldrSrtr.slnx"
+$UiProject    = Join-Path $RepoRoot "src\App.UI\App.UI.csproj"
+$IconPng      = Join-Path $RepoRoot "fldrsrtr.png"
+$PublishSrc   = Join-Path $RepoRoot "src\App.UI\bin\Release\net481"
+$CounterPath  = Join-Path $PSScriptRoot ".build-counter"
 
-$StagingDir = Join-Path $RepoRoot "release\FldrSrtr-$Version"
-$ZipPath    = Join-Path $RepoRoot "release\FldrSrtr-$Version.zip"
+$VersionParts = $Version.Split(".")
+$Major = if ($VersionParts.Length -ge 1) { $VersionParts[0] } else { "0" }
+$Minor = if ($VersionParts.Length -ge 2) { $VersionParts[1] } else { "0" }
+
+$BuildNumber = 0
+if (Test-Path $CounterPath) {
+    $BuildNumber = [int](Get-Content $CounterPath -Raw).Trim()
+}
+$BuildNumber++
+Set-Content -Path $CounterPath -Value $BuildNumber -NoNewline
+
+$FullVersion = "$Major.$Minor.$BuildNumber"
+
+$StagingDir = Join-Path $RepoRoot "release\FldrSrtr-$FullVersion"
+$ZipPath    = Join-Path $RepoRoot "release\FldrSrtr-$FullVersion.zip"
 $ShaPath    = "$ZipPath.sha256"
 
-Write-Host "== FldrSrtr release build v$Version ==" -ForegroundColor Cyan
+Write-Host "== FldrSrtr release build v$FullVersion (build #$BuildNumber) ==" -ForegroundColor Cyan
+Write-Host "Vergeet niet build/.build-counter mee te committen zodat de teller gedeeld blijft." -ForegroundColor DarkYellow
 
 Write-Host "-- Bouwen (Release) --"
 dotnet build $SlnPath -c Release
