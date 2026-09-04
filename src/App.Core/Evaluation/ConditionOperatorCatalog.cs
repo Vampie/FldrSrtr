@@ -14,6 +14,8 @@ namespace App.Core.Evaluation
         {
             switch (field)
             {
+                case ConditionField.All:
+                    return new[] { ConditionOperator.Equals };
                 case ConditionField.FileName:
                     return new[]
                     {

@@ -29,6 +29,12 @@ namespace App.Core.Tests
         private static ConditionNode Leaf(ConditionField field, ConditionOperator op, string value, bool caseSensitive = false) =>
             new ConditionNode { NodeType = ConditionNodeType.Leaf, Field = field, Operator = op, Value = value, CaseSensitive = caseSensitive };
 
+        [Fact]
+        public void All_AlwaysMatches_RegardlessOfOperatorOrValue()
+        {
+            ConditionEvaluator.Evaluate(Leaf(ConditionField.All, ConditionOperator.Equals, null), MakeFile()).Should().BeTrue();
+        }
+
         [Theory]
         [InlineData(ConditionOperator.Equals, "invoice.pdf", true)]
         [InlineData(ConditionOperator.Contains, "voice", true)]

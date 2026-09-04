@@ -65,6 +65,37 @@ namespace App.Infrastructure.Tests
             imported.Actions.Should().ContainSingle(a => a.Destination == @"D:\Archive");
         }
 
+        [Fact]
+        public void CloneRule_CopiesContentButAssignsFreshIdAndName()
+        {
+            var sut = new ImportExportService();
+            var rule = new Rule { Name = "Archive invoices" };
+            rule.RootCondition.Children.Add(ConditionNode.NewLeaf(ConditionField.Extension, ConditionOperator.Equals, "pdf"));
+            rule.Actions.Add(new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive" });
+
+            Rule clone = sut.CloneRule(rule);
+
+            clone.Id.Should().NotBe(rule.Id);
+            clone.Name.Should().Be("Archive invoices (kopie)");
+            clone.RootCondition.Children.Should().ContainSingle(c => c.Value == "pdf");
+            clone.Actions.Should().ContainSingle(a => a.Destination == @"D:\Archive");
+        }
+
+        [Fact]
+        public void CloneFolder_CopiesRulesWithFreshIdsThroughout()
+        {
+            var sut = new ImportExportService();
+            var folder = new WatchedFolder { Path = @"C:\Downloads", Recursive = true };
+            var rule = new Rule { Name = "Move old PDFs" };
+            folder.Rules.Add(rule);
+
+            WatchedFolder clone = sut.CloneFolder(folder);
+
+            clone.Id.Should().NotBe(folder.Id);
+            clone.Path.Should().Be(@"C:\Downloads");
+            clone.Rules.Should().ContainSingle(r => r.Name == "Move old PDFs" && r.Id != rule.Id);
+        }
+
         public void Dispose()
         {
             if (Directory.Exists(_tempDir))

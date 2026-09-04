@@ -44,6 +44,8 @@ namespace App.Core.Evaluation
         {
             switch (condition.Field)
             {
+                case ConditionField.All:
+                    return true;
                 case ConditionField.FileName:
                     return EvaluateText(condition, file.Name);
                 case ConditionField.Extension:

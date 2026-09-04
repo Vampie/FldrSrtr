@@ -2,6 +2,9 @@ namespace App.Core.Model
 {
     public enum ConditionField
     {
+        /// <summary>Always matches — no filter applied. Lets a rule act on every file in scope.</summary>
+        All,
+
         FileName,
         Extension,
         Size,

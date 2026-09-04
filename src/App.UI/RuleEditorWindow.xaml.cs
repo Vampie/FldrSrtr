@@ -12,7 +12,7 @@ namespace FldrSrtr
 {
     public partial class RuleEditorWindow : Window
     {
-        private static readonly ConditionField[] BasicFields = { ConditionField.FileName, ConditionField.Extension, ConditionField.Size, ConditionField.Age };
+        private static readonly ConditionField[] BasicFields = { ConditionField.All, ConditionField.FileName, ConditionField.Extension, ConditionField.Size, ConditionField.Age };
         private static readonly ConditionField[] AllFields = (ConditionField[])Enum.GetValues(typeof(ConditionField));
 
         private static readonly ConditionOperator[] BasicOperators = ((ConditionOperator[])Enum.GetValues(typeof(ConditionOperator)))
@@ -194,9 +194,14 @@ namespace FldrSrtr
 
         private void UpdateDateValueUi(ConditionNode node)
         {
+            bool isAll = node.Field == ConditionField.All;
             bool isDate = IsDateField(node.Field);
-            TextValuePanel.Visibility = isDate ? Visibility.Collapsed : Visibility.Visible;
-            DateValuePanel.Visibility = isDate ? Visibility.Visible : Visibility.Collapsed;
+
+            AllFieldHintText.Visibility = isAll ? Visibility.Visible : Visibility.Collapsed;
+            OperatorRow.Visibility = isAll ? Visibility.Collapsed : Visibility.Visible;
+            CaseSensitiveCheckBox.Visibility = isAll ? Visibility.Collapsed : Visibility.Visible;
+            TextValuePanel.Visibility = !isAll && !isDate ? Visibility.Visible : Visibility.Collapsed;
+            DateValuePanel.Visibility = !isAll && isDate ? Visibility.Visible : Visibility.Collapsed;
 
             if (!isDate)
             {
@@ -276,7 +281,7 @@ namespace FldrSrtr
                 UpdateDateValueUi(_selectedNode);
             }
 
-            if (!IsDateField(_selectedNode.Field))
+            if (!IsDateField(_selectedNode.Field) && _selectedNode.Field != ConditionField.All)
             {
                 _selectedNode.Value = ValueTextBox.Text;
             }

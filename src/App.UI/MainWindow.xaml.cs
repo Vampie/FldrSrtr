@@ -127,6 +127,21 @@ namespace FldrSrtr
             SaveConfig();
         }
 
+        private void DuplicateFolder_Click(object sender, RoutedEventArgs e)
+        {
+            WatchedFolder folder = SelectedFolder;
+            if (folder == null)
+            {
+                return;
+            }
+
+            WatchedFolder clone = _importExportService.CloneFolder(folder);
+            int index = _config.Folders.IndexOf(folder);
+            _config.Folders.Insert(index + 1, clone);
+            SaveConfig();
+            FoldersList.SelectedItem = clone;
+        }
+
         private void OpenInExplorer_Click(object sender, RoutedEventArgs e)
         {
             WatchedFolder folder = SelectedFolder;
@@ -259,6 +274,22 @@ namespace FldrSrtr
                 RulesList.Items.Refresh();
                 RefreshRulePreview();
             }
+        }
+
+        private void DuplicateRule_Click(object sender, RoutedEventArgs e)
+        {
+            WatchedFolder folder = SelectedFolder;
+            Rule rule = SelectedRule;
+            if (folder == null || rule == null)
+            {
+                return;
+            }
+
+            Rule clone = _importExportService.CloneRule(rule);
+            int index = folder.Rules.IndexOf(rule);
+            folder.Rules.Insert(index + 1, clone);
+            SaveConfig();
+            RulesList.SelectedItem = clone;
         }
 
         private void DeleteRule_Click(object sender, RoutedEventArgs e)

@@ -75,7 +75,7 @@ namespace App.Core.Evaluation
                 return;
             }
 
-            bool needsValue = node.Field != ConditionField.Duplicate;
+            bool needsValue = node.Field != ConditionField.Duplicate && node.Field != ConditionField.All;
             if (needsValue && string.IsNullOrWhiteSpace(node.Value))
             {
                 issues.Add($"Conditie op '{node.Field}' heeft geen waarde ingevuld.");

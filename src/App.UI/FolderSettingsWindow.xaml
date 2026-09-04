@@ -14,7 +14,10 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" x:Name="PathText" FontWeight="Bold" Margin="0,0,0,12" TextWrapping="Wrap" />
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBox x:Name="PathTextBox" Width="320" Margin="0,0,4,0" />
+            <Button Content="Bladeren..." Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Click="BrowsePath_Click" />
+        </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
             <CheckBox x:Name="RecursiveCheckBox" Content="Recursief (subfolders meenemen)" VerticalAlignment="Center" />

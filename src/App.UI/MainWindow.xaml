@@ -76,6 +76,7 @@
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Margin="0,8,0,0">
                         <Button Content="Add folder" Tag="Icons/icon-add-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="AddFolder_Click" />
                         <Button Content="Remove folder" Tag="Icons/icon-remove-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="RemoveFolder_Click" />
+                        <Button Content="Duplicate folder" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="DuplicateFolder_Click" />
                         <Button Content="Open in Explorer" Tag="Icons/icon-open-folder.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="OpenInExplorer_Click" />
                         <Button Content="Folder settings" Tag="Icons/icon-settings.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="FolderSettings_Click" />
                         <Button Content="Scan now" Tag="Icons/icon-scan.png" Style="{StaticResource IconButton}" Margin="0,0,0,4" Click="ScanNow_Click" />
@@ -112,6 +113,7 @@
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,4">
                         <Button Content="Add rule" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="AddRule_Click" />
                         <Button Content="Edit rule" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="EditRule_Click" />
+                        <Button Content="Duplicate rule" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="DuplicateRule_Click" />
                         <Button Content="Delete rule" Tag="Icons/icon-delete.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="DeleteRule_Click" />
                         <Button Content="Export rule..." Tag="Icons/icon-export.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="ExportRule_Click" />
                         <Button Content="Import rule..." Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Margin="0,0,16,0" Click="ImportRule_Click" />

@@ -50,6 +50,15 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void AllField_NeedsNoValue_IsNotFlagged()
+        {
+            var rule = ValidRule();
+            rule.RootCondition.Children[0] = ConditionNode.NewLeaf(ConditionField.All, ConditionOperator.Equals, null);
+
+            RuleValidator.Validate(rule).Should().BeEmpty();
+        }
+
+        [Fact]
         public void MissingConditionValue_IsFlagged()
         {
             var rule = ValidRule();

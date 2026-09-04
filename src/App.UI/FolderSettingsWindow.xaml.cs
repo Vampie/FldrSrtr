@@ -15,7 +15,7 @@ namespace FldrSrtr
             InitializeComponent();
             _folder = folder;
 
-            PathText.Text = folder.Path;
+            PathTextBox.Text = folder.Path;
             RecursiveCheckBox.IsChecked = folder.Recursive;
             MaxDepthTextBox.Text = folder.MaxRecursionDepth.ToString();
 
@@ -23,6 +23,15 @@ namespace FldrSrtr
             _subfolders = new ObservableCollection<string>(folder.ExcludedSubfolders);
             FilePatternsListBox.ItemsSource = _filePatterns;
             SubfoldersListBox.ItemsSource = _subfolders;
+        }
+
+        private void BrowsePath_Click(object sender, RoutedEventArgs e)
+        {
+            string path = ModernFolderPicker.PickFolder("Selecteer de map voor deze folder entry", PathTextBox.Text);
+            if (path != null)
+            {
+                PathTextBox.Text = path;
+            }
         }
 
         private void AddFilePattern_Click(object sender, RoutedEventArgs e)
@@ -63,6 +72,14 @@ namespace FldrSrtr
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
+            string path = PathTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(path))
+            {
+                MessageBox.Show(this, "Geef een map op.", "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _folder.Path = path;
             _folder.Recursive = RecursiveCheckBox.IsChecked == true;
             _folder.MaxRecursionDepth = int.TryParse(MaxDepthTextBox.Text, out int depth) ? depth : 10;
 

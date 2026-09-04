@@ -143,7 +143,8 @@
                         <TextBlock Text="Field:" Width="70" VerticalAlignment="Center" />
                         <ComboBox x:Name="FieldComboBox" Width="120" SelectionChanged="LeafField_Changed" />
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock x:Name="AllFieldHintText" Text="Matcht alle bestanden — geen filter, geen Operator/Value nodig." Foreground="Gray" Margin="0,0,0,6" Visibility="Collapsed" />
+                    <StackPanel x:Name="OperatorRow" Orientation="Horizontal" Margin="0,0,0,6">
                         <TextBlock Text="Operator:" Width="70" VerticalAlignment="Center" />
                         <ComboBox x:Name="OperatorComboBox" Width="150" SelectionChanged="LeafField_Changed" />
                     </StackPanel>

@@ -60,6 +60,10 @@ namespace FldrSrtr
                     DescribeNode(child, depth + 1, sb);
                 }
             }
+            else if (node.Field == ConditionField.All)
+            {
+                sb.AppendLine($"{indent}All (alle bestanden — geen filter)");
+            }
             else
             {
                 string caseSensitive = node.CaseSensitive ? " [case-sensitive]" : string.Empty;
