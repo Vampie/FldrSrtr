@@ -11,9 +11,12 @@
 *.userosscache
 *.sln.docstates
 
-# Release/publish-output van het portable releasescript
+# Release/publish-output van het portable releasescript, en handmatig uitgepakte
+# releases die de gebruiker zelf test (bv. release_1.0.0/) — bevatten hun eigen
+# runtime data (config.json, activity.jsonl, backups) en horen niet in git.
 /publish/
 /release/
+release_*/
 *.zip
 
 # Rider / VS Code

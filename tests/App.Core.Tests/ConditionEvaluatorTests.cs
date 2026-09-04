@@ -163,6 +163,43 @@ namespace App.Core.Tests
             ConditionEvaluator.Evaluate(node, file).Should().BeTrue();
         }
 
+        [Theory]
+        [InlineData(ConditionField.Extension, ConditionOperator.Contains)]
+        [InlineData(ConditionField.FileName, ConditionOperator.GreaterThan)]
+        [InlineData(ConditionField.Age, ConditionOperator.Contains)]
+        [InlineData(ConditionField.Size, ConditionOperator.StartsWith)]
+        public void Evaluate_MismatchedFieldAndOperator_FailsSafeInsteadOfThrowing(ConditionField field, ConditionOperator op)
+        {
+            // Regression: a hand-edited or imported rule.json can pair any operator with any
+            // field (e.g. Extension + Contains). This used to throw NotSupportedException from
+            // inside RuleEngine.GetMatches' LINQ Where clause, crashing the whole app on one bad
+            // rule — exactly the kind of single-file failure §4.2 says must never take down a run.
+            var node = Leaf(field, op, "x");
+
+            Action act = () => ConditionEvaluator.Evaluate(node, MakeFile());
+
+            act.Should().NotThrow();
+            ConditionEvaluator.Evaluate(node, MakeFile()).Should().BeFalse();
+        }
+
+        [Fact]
+        public void Matches_ReportedCrashRule_AnyGroupWithMismatchedSecondLeaf_DoesNotThrow()
+        {
+            // The exact shape from the user-reported crash: ANY(Age LessThan 20, Extension Contains "htm").
+            // A file where the first (valid) branch is false forces evaluation into the second,
+            // invalid Extension+Contains branch.
+            var rule = new Rule { RootCondition = ConditionNode.NewGroup(GroupLogic.Any) };
+            rule.RootCondition.Children.Add(Leaf(ConditionField.Age, ConditionOperator.LessThan, "20"));
+            rule.RootCondition.Children.Add(Leaf(ConditionField.Extension, ConditionOperator.Contains, "htm"));
+
+            var oldFile = MakeFile("archive.html", daysOld: 40); // Age branch false -> falls through to bad branch
+
+            Action act = () => ConditionEvaluator.Matches(rule, oldFile);
+
+            act.Should().NotThrow();
+            ConditionEvaluator.Matches(rule, oldFile).Should().BeFalse();
+        }
+
         [Fact]
         public void Matches_WithEmptyRootGroup_NeverMatches()
         {

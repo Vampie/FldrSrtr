@@ -95,7 +95,7 @@ namespace App.Core.Evaluation
                 case ConditionOperator.EndsWith:
                     return actual.EndsWith(expected, comparison);
                 default:
-                    throw new NotSupportedException($"Operator {condition.Operator} wordt niet ondersteund voor filename.");
+                    return false; // unsupported operator for this field — fail safe rather than crash the run
             }
         }
 
@@ -114,7 +114,7 @@ namespace App.Core.Evaluation
                 case ConditionOperator.IsNotOneOf:
                     return !SplitList(condition.Value).Any(v => string.Equals(actual, v, StringComparison.OrdinalIgnoreCase));
                 default:
-                    throw new NotSupportedException($"Operator {condition.Operator} wordt niet ondersteund voor extension.");
+                    return false; // unsupported operator for this field — fail safe rather than crash the run
             }
         }
 
@@ -131,7 +131,7 @@ namespace App.Core.Evaluation
                 case ConditionOperator.LessThan: return actualBytes < expected;
                 case ConditionOperator.LessOrEqual: return actualBytes <= expected;
                 default:
-                    throw new NotSupportedException($"Operator {condition.Operator} wordt niet ondersteund voor size.");
+                    return false; // unsupported operator for this field — fail safe rather than crash the run
             }
         }
 
@@ -148,7 +148,7 @@ namespace App.Core.Evaluation
                 case ConditionOperator.LessOrEqual: return ageDays <= expectedDays;
                 case ConditionOperator.Equals: return Math.Abs(ageDays - expectedDays) < 1.0;
                 default:
-                    throw new NotSupportedException($"Operator {condition.Operator} wordt niet ondersteund voor age.");
+                    return false; // unsupported operator for this field — fail safe rather than crash the run
             }
         }
 

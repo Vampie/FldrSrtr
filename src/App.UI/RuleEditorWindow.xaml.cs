@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using App.Core.Evaluation;
 using App.Core.Model;
 
 namespace FldrSrtr
@@ -55,8 +56,28 @@ namespace FldrSrtr
             bool advanced = AdvancedModeCheckBox.IsChecked == true;
             VariableHelpPanel.Visibility = advanced ? Visibility.Visible : Visibility.Collapsed;
             FieldComboBox.ItemsSource = advanced ? AllFields : BasicFields;
-            OperatorComboBox.ItemsSource = advanced ? AllOperators : BasicOperators;
             ActionTypeColumn.ItemsSource = advanced ? AllActions : BasicActions;
+
+            if (_selectedNode?.NodeType == ConditionNodeType.Leaf)
+            {
+                _suppressEvents = true;
+                ConditionOperator[] choices = GetOperatorChoices(_selectedNode.Field);
+                OperatorComboBox.ItemsSource = choices;
+                OperatorComboBox.SelectedItem = choices.Contains(_selectedNode.Operator) ? (object)_selectedNode.Operator : choices.FirstOrDefault();
+                _suppressEvents = false;
+            }
+            else
+            {
+                OperatorComboBox.ItemsSource = advanced ? AllOperators : BasicOperators;
+            }
+        }
+
+        private ConditionOperator[] GetOperatorChoices(ConditionField field)
+        {
+            ConditionOperator[] allowedForField = ConditionOperatorCatalog.SupportedOperators(field);
+            bool advanced = AdvancedModeCheckBox.IsChecked == true;
+            ConditionOperator[] allowedForMode = advanced ? AllOperators : BasicOperators;
+            return allowedForField.Where(op => allowedForMode.Contains(op)).ToArray();
         }
 
         private static bool RuleUsesAdvancedFeatures(Rule rule)
@@ -111,6 +132,7 @@ namespace FldrSrtr
                     GroupDetailsPanel.Visibility = Visibility.Collapsed;
                     LeafDetailsPanel.Visibility = Visibility.Visible;
                     FieldComboBox.SelectedItem = _selectedNode.Field;
+                    OperatorComboBox.ItemsSource = GetOperatorChoices(_selectedNode.Field);
                     OperatorComboBox.SelectedItem = _selectedNode.Operator;
                     ValueTextBox.Text = _selectedNode.Value;
                     CaseSensitiveCheckBox.IsChecked = _selectedNode.CaseSensitive;
@@ -141,8 +163,22 @@ namespace FldrSrtr
 
             if (FieldComboBox.SelectedItem != null)
             {
-                _selectedNode.Field = (ConditionField)FieldComboBox.SelectedItem;
+                var newField = (ConditionField)FieldComboBox.SelectedItem;
+                bool fieldChanged = newField != _selectedNode.Field;
+                _selectedNode.Field = newField;
                 DuplicateHintText.Visibility = _selectedNode.Field == ConditionField.Duplicate ? Visibility.Visible : Visibility.Collapsed;
+
+                if (fieldChanged)
+                {
+                    // The old operator may not be valid for the new field (this is exactly how a
+                    // hand-edited rule.json can end up with e.g. Extension + Contains) — reset it.
+                    _suppressEvents = true;
+                    ConditionOperator[] choices = GetOperatorChoices(newField);
+                    OperatorComboBox.ItemsSource = choices;
+                    OperatorComboBox.SelectedItem = choices.Contains(_selectedNode.Operator) ? (object)_selectedNode.Operator : choices.FirstOrDefault();
+                    _suppressEvents = false;
+                    _selectedNode.Operator = OperatorComboBox.SelectedItem is ConditionOperator selected ? selected : default;
+                }
             }
             if (OperatorComboBox.SelectedItem != null)
             {
