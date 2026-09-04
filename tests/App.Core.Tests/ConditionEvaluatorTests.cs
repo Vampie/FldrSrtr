@@ -144,6 +144,26 @@ namespace App.Core.Tests
         }
 
         [Fact]
+        public void Duplicate_EqualsTrue_MatchesFlaggedFile()
+        {
+            var node = Leaf(ConditionField.Duplicate, ConditionOperator.Equals, "true");
+            var file = MakeFile();
+            file.IsDuplicate = true;
+
+            ConditionEvaluator.Evaluate(node, file).Should().BeTrue();
+        }
+
+        [Fact]
+        public void Duplicate_EqualsFalse_MatchesUnflaggedFile()
+        {
+            var node = Leaf(ConditionField.Duplicate, ConditionOperator.Equals, "false");
+            var file = MakeFile();
+            file.IsDuplicate = false;
+
+            ConditionEvaluator.Evaluate(node, file).Should().BeTrue();
+        }
+
+        [Fact]
         public void Matches_WithEmptyRootGroup_NeverMatches()
         {
             var rule = new Rule();

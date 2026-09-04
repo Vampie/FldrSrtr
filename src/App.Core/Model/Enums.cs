@@ -5,7 +5,10 @@ namespace App.Core.Model
         FileName,
         Extension,
         Size,
-        Age
+        Age,
+
+        /// <summary>True if another file in the same run has identical content (SHA-256).</summary>
+        Duplicate
     }
 
     public enum ConditionOperator
@@ -47,7 +50,28 @@ namespace App.Core.Model
         Move,
         Copy,
         Rename,
-        DeleteToRecycleBin
+        DeleteToRecycleBin,
+
+        /// <summary>Opens the file with its default associated application.</summary>
+        Open,
+
+        /// <summary>Opens the file with the application at Destination.</summary>
+        OpenWith,
+
+        /// <summary>Runs the program/script at Destination, with Arguments (both support variables).</summary>
+        ExecuteExternal,
+
+        /// <summary>Ensures the folder at Destination (variables resolved) exists.</summary>
+        CreateFolder,
+
+        /// <summary>Appends the extension in Destination, e.g. "bak" -> "file.pdf.bak".</summary>
+        AddExtension,
+
+        /// <summary>Strips the current extension, e.g. "file.pdf" -> "file".</summary>
+        RemoveExtension,
+
+        /// <summary>Adds the file to the zip archive at Destination (created if missing).</summary>
+        Zip
     }
 
     public enum ConflictResolution

@@ -9,6 +9,16 @@ namespace FldrSrtr
 {
     public partial class RuleEditorWindow : Window
     {
+        private static readonly ConditionField[] BasicFields = { ConditionField.FileName, ConditionField.Extension, ConditionField.Size, ConditionField.Age };
+        private static readonly ConditionField[] AllFields = (ConditionField[])Enum.GetValues(typeof(ConditionField));
+
+        private static readonly ConditionOperator[] BasicOperators = ((ConditionOperator[])Enum.GetValues(typeof(ConditionOperator)))
+            .Where(op => op != ConditionOperator.Wildcard && op != ConditionOperator.Regex).ToArray();
+        private static readonly ConditionOperator[] AllOperators = (ConditionOperator[])Enum.GetValues(typeof(ConditionOperator));
+
+        private static readonly ActionType[] BasicActions = { ActionType.Move, ActionType.Copy, ActionType.Rename, ActionType.DeleteToRecycleBin };
+        private static readonly ActionType[] AllActions = (ActionType[])Enum.GetValues(typeof(ActionType));
+
         private readonly Rule _rule;
         private readonly ObservableCollection<RuleAction> _actions;
         private ConditionNode _selectedNode;
@@ -20,9 +30,6 @@ namespace FldrSrtr
             _rule = rule;
 
             GroupLogicComboBox.ItemsSource = Enum.GetValues(typeof(GroupLogic));
-            FieldComboBox.ItemsSource = Enum.GetValues(typeof(ConditionField));
-            OperatorComboBox.ItemsSource = Enum.GetValues(typeof(ConditionOperator));
-            ActionTypeColumn.ItemsSource = Enum.GetValues(typeof(ActionType));
             OnConflictColumn.ItemsSource = Enum.GetValues(typeof(ConflictResolution));
 
             NameTextBox.Text = rule.Name;
@@ -36,6 +43,42 @@ namespace FldrSrtr
 
             _actions = new ObservableCollection<RuleAction>(rule.Actions);
             ActionsGrid.ItemsSource = _actions;
+
+            AdvancedModeCheckBox.IsChecked = RuleUsesAdvancedFeatures(rule);
+            ApplyAdvancedMode();
+        }
+
+        private void AdvancedModeCheckBox_Changed(object sender, RoutedEventArgs e) => ApplyAdvancedMode();
+
+        private void ApplyAdvancedMode()
+        {
+            bool advanced = AdvancedModeCheckBox.IsChecked == true;
+            VariableHelpPanel.Visibility = advanced ? Visibility.Visible : Visibility.Collapsed;
+            FieldComboBox.ItemsSource = advanced ? AllFields : BasicFields;
+            OperatorComboBox.ItemsSource = advanced ? AllOperators : BasicOperators;
+            ActionTypeColumn.ItemsSource = advanced ? AllActions : BasicActions;
+        }
+
+        private static bool RuleUsesAdvancedFeatures(Rule rule)
+        {
+            if (rule.Actions.Any(a => !BasicActions.Contains(a.Type)))
+            {
+                return true;
+            }
+            return UsesAdvancedCondition(rule.RootCondition);
+        }
+
+        private static bool UsesAdvancedCondition(ConditionNode node)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+            if (node.NodeType == ConditionNodeType.Leaf)
+            {
+                return !BasicFields.Contains(node.Field) || !BasicOperators.Contains(node.Operator);
+            }
+            return node.Children.Any(UsesAdvancedCondition);
         }
 
         // ----- Conditions tree -----
@@ -71,6 +114,7 @@ namespace FldrSrtr
                     OperatorComboBox.SelectedItem = _selectedNode.Operator;
                     ValueTextBox.Text = _selectedNode.Value;
                     CaseSensitiveCheckBox.IsChecked = _selectedNode.CaseSensitive;
+                    DuplicateHintText.Visibility = _selectedNode.Field == ConditionField.Duplicate ? Visibility.Visible : Visibility.Collapsed;
                 }
             }
             finally
@@ -98,6 +142,7 @@ namespace FldrSrtr
             if (FieldComboBox.SelectedItem != null)
             {
                 _selectedNode.Field = (ConditionField)FieldComboBox.SelectedItem;
+                DuplicateHintText.Visibility = _selectedNode.Field == ConditionField.Duplicate ? Visibility.Visible : Visibility.Collapsed;
             }
             if (OperatorComboBox.SelectedItem != null)
             {

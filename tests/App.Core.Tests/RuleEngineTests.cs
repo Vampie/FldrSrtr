@@ -15,6 +15,12 @@ namespace App.Core.Tests
             public List<(string From, string To)> Moved { get; } = new List<(string, string)>();
             public List<(string From, string To)> Copied { get; } = new List<(string, string)>();
             public List<string> DeletedToRecycleBin { get; } = new List<string>();
+            public Dictionary<string, string> Hashes { get; } = new Dictionary<string, string>();
+            public List<string> CreatedDirectories { get; } = new List<string>();
+            public List<(string File, string Zip)> ZippedFiles { get; } = new List<(string, string)>();
+            public List<string> OpenedFiles { get; } = new List<string>();
+            public List<(string App, string File)> OpenedWith { get; } = new List<(string, string)>();
+            public List<(string Exe, string Args)> ExecutedExternal { get; } = new List<(string, string)>();
 
             public bool FileExists(string path) => ExistingFiles.Contains(path);
 
@@ -36,6 +42,13 @@ namespace App.Core.Tests
                 DeletedToRecycleBin.Add(path);
                 ExistingFiles.Remove(path);
             }
+
+            public string ComputeSha256(string path) => Hashes.TryGetValue(path, out string hash) ? hash : path;
+            public void CreateDirectory(string path) => CreatedDirectories.Add(path);
+            public void AddToZip(string filePath, string zipPath) => ZippedFiles.Add((filePath, zipPath));
+            public void OpenFile(string path) => OpenedFiles.Add(path);
+            public void OpenFileWith(string applicationPath, string filePath) => OpenedWith.Add((applicationPath, filePath));
+            public void ExecuteExternal(string executablePath, string arguments) => ExecutedExternal.Add((executablePath, arguments));
         }
 
         private class FixedConflictPrompt : IConflictPrompt
@@ -224,12 +237,153 @@ namespace App.Core.Tests
             results.Should().HaveCount(1);
         }
 
+        [Fact]
+        public void PlanAction_Move_ResolvesVariablesInDestination()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive\{Year}\{Month}" };
+            var now = new System.DateTime(2026, 3, 5);
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath, now);
+
+            plan.ResolvedDestinationPath.Should().Be(@"D:\Archive\2026\03\invoice.pdf");
+        }
+
+        [Fact]
+        public void PlanAction_Move_DestinationWithFileNameToken_UsedAsFullPath()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.Move, Destination = @"D:\Archive\{Year}\{FileName}.{Extension}" };
+            var now = new System.DateTime(2026, 3, 5);
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath, now);
+
+            plan.ResolvedDestinationPath.Should().Be(@"D:\Archive\2026\invoice.pdf");
+        }
+
+        [Fact]
+        public void Execute_AddExtension_AppendsToCurrentName()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.AddExtension, Destination = "bak" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+            engine.Execute(plan, dryRun: false);
+
+            plan.ResolvedDestinationPath.Should().Be(@"C:\Downloads\invoice.pdf.bak");
+            fileOps.Moved.Should().Contain(m => m.To == @"C:\Downloads\invoice.pdf.bak");
+        }
+
+        [Fact]
+        public void Execute_RemoveExtension_StripsCurrentExtension()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.RemoveExtension };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+            engine.Execute(plan, dryRun: false);
+
+            plan.ResolvedDestinationPath.Should().Be(@"C:\Downloads\invoice");
+        }
+
+        [Fact]
+        public void Execute_CreateFolder_ResolvesVariablesAndCallsCreateDirectory()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.CreateFolder, Destination = @"D:\Archive\{Year}" };
+            var now = new System.DateTime(2026, 3, 5);
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath, now);
+            engine.Execute(plan, dryRun: false);
+
+            fileOps.CreatedDirectories.Should().Contain(@"D:\Archive\2026");
+        }
+
+        [Fact]
+        public void Execute_Zip_AddsFileToArchivePath()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.Zip, Destination = @"D:\Archive\{Year}.zip" };
+            var now = new System.DateTime(2026, 3, 5);
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath, now);
+            engine.Execute(plan, dryRun: false);
+
+            fileOps.ZippedFiles.Should().ContainSingle(z => z.File == file.FullPath && z.Zip == @"D:\Archive\2026.zip");
+        }
+
+        [Fact]
+        public void Execute_OpenWith_PassesApplicationAndFile()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.OpenWith, Destination = @"C:\Apps\Reader.exe" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+            engine.Execute(plan, dryRun: false);
+
+            fileOps.OpenedWith.Should().ContainSingle(o => o.App == @"C:\Apps\Reader.exe" && o.File == file.FullPath);
+        }
+
+        [Fact]
+        public void Execute_ExecuteExternal_ResolvesArgumentsVariables()
+        {
+            var fileOps = new FakeFileOperations();
+            var engine = new RuleEngine(fileOps);
+            var file = MakeFile(@"C:\Downloads", "invoice.pdf");
+            var action = new RuleAction { Type = ActionType.ExecuteExternal, Destination = @"C:\Tools\process.exe", Arguments = "\"{FullPath}\"" };
+
+            PlannedAction plan = engine.PlanAction(file, action, file.FullPath);
+            engine.Execute(plan, dryRun: false);
+
+            fileOps.ExecutedExternal.Should().ContainSingle(x => x.Exe == @"C:\Tools\process.exe" && x.Args == $"\"{file.FullPath}\"");
+        }
+
+        [Fact]
+        public void ExecuteRule_DuplicateCondition_OnlyFlaggedCopyGetsMoved()
+        {
+            var fileOps = new FakeFileOperations();
+            fileOps.Hashes[@"C:\Downloads\a.pdf"] = "SAME";
+            fileOps.Hashes[@"C:\Downloads\b.pdf"] = "SAME";
+            var engine = new RuleEngine(fileOps);
+            var a = MakeFile(@"C:\Downloads", "a.pdf");
+            var b = MakeFile(@"C:\Downloads", "b.pdf");
+
+            var rule = new Rule { RootCondition = ConditionNode.NewGroup() };
+            rule.RootCondition.Children.Add(ConditionNode.NewLeaf(ConditionField.Duplicate, ConditionOperator.Equals, "true"));
+            rule.Actions.Add(new RuleAction { Type = ActionType.Move, Destination = @"D:\Duplicates" });
+
+            List<ExecutionResult> results = engine.ExecuteRule(rule, new[] { a, b }, dryRun: false);
+
+            results.Should().HaveCount(1);
+            fileOps.Moved.Should().ContainSingle(m => m.From == @"C:\Downloads\b.pdf");
+        }
+
         private class ThrowingFileOperations : IFileOperations
         {
             public bool FileExists(string path) => false;
             public void Move(string sourcePath, string destinationPath) => throw new System.IO.IOException("bestand is in gebruik");
             public void Copy(string sourcePath, string destinationPath) { }
             public void DeleteToRecycleBin(string path) { }
+            public string ComputeSha256(string path) => path;
+            public void CreateDirectory(string path) { }
+            public void AddToZip(string filePath, string zipPath) { }
+            public void OpenFile(string path) { }
+            public void OpenFileWith(string applicationPath, string filePath) { }
+            public void ExecuteExternal(string executablePath, string arguments) { }
         }
     }
 }

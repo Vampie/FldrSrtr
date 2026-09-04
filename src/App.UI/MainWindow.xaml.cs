@@ -11,6 +11,7 @@ using App.Core.Model;
 using App.Infrastructure.Activity;
 using App.Infrastructure.Configuration;
 using App.Infrastructure.Execution;
+using App.Infrastructure.Notifications;
 using App.Infrastructure.Safety;
 using App.Infrastructure.Scanning;
 
@@ -21,6 +22,7 @@ namespace FldrSrtr
         private readonly ConfigService _configService = new ConfigService();
         private readonly IFileSystem _fileSystem = new FileSystem();
         private readonly ActivityLogger _activityLogger = new ActivityLogger();
+        private readonly NotificationService _notificationService = new NotificationService();
         private readonly ObservableCollection<PreviewRow> _previewRows = new ObservableCollection<PreviewRow>();
 
         private AppConfig _config;
@@ -248,6 +250,7 @@ namespace FldrSrtr
             if (!dryRun)
             {
                 RefreshActivity();
+                _notificationService.ShowBalloonTip("FldrSrtr", $"'{rule.Name}': {SummaryText.Text}");
             }
         }
 

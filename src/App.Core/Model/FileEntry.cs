@@ -19,5 +19,11 @@ namespace App.Core.Model
         public DateTime CreatedUtc { get; set; }
         public DateTime ModifiedUtc { get; set; }
         public DateTime AccessedUtc { get; set; }
+
+        /// <summary>
+        /// Set by DuplicateDetector before evaluation, only when a rule actually checks it —
+        /// hashing every scanned file "just in case" would violate §4.1's performance guidance.
+        /// </summary>
+        public bool IsDuplicate { get; set; }
     }
 }

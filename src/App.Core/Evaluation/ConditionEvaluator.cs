@@ -51,9 +51,17 @@ namespace App.Core.Evaluation
                     return EvaluateSize(condition, file.SizeBytes);
                 case ConditionField.Age:
                     return EvaluateAge(condition, file.ModifiedUtc);
+                case ConditionField.Duplicate:
+                    return EvaluateDuplicate(condition, file.IsDuplicate);
                 default:
                     return false;
             }
+        }
+
+        private static bool EvaluateDuplicate(ConditionNode condition, bool isDuplicate)
+        {
+            bool expected = !string.Equals(condition.Value, "false", StringComparison.OrdinalIgnoreCase);
+            return condition.Operator == ConditionOperator.NotEquals ? isDuplicate != expected : isDuplicate == expected;
         }
 
         private static bool EvaluateFileName(ConditionNode condition, string actual)

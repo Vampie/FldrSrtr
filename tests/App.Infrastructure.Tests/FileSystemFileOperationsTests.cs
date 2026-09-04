@@ -35,5 +35,30 @@ namespace App.Infrastructure.Tests
             fileSystem.FileExists(@"C:\Downloads\invoice.pdf").Should().BeFalse();
             fileSystem.File.ReadAllText(@"D:\Archive\invoice.pdf").Should().Be("new");
         }
+
+        [Fact]
+        public void Move_ToNonExistentDynamicSubfolder_CreatesItFirst()
+        {
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddFile(@"C:\Downloads\invoice.pdf", new MockFileData("content"));
+            var ops = new FileSystemFileOperations(fileSystem, new ProtectedPathGuard());
+
+            ops.Move(@"C:\Downloads\invoice.pdf", @"D:\Archive\2026\09\invoice.pdf");
+
+            fileSystem.FileExists(@"D:\Archive\2026\09\invoice.pdf").Should().BeTrue();
+        }
+
+        [Fact]
+        public void Copy_ToNonExistentDynamicSubfolder_CreatesItFirst()
+        {
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddFile(@"C:\Downloads\invoice.pdf", new MockFileData("content"));
+            var ops = new FileSystemFileOperations(fileSystem, new ProtectedPathGuard());
+
+            ops.Copy(@"C:\Downloads\invoice.pdf", @"D:\Archive\2026\09\invoice.pdf");
+
+            fileSystem.FileExists(@"D:\Archive\2026\09\invoice.pdf").Should().BeTrue();
+            fileSystem.FileExists(@"C:\Downloads\invoice.pdf").Should().BeTrue();
+        }
     }
 }

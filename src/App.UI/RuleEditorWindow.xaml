@@ -3,13 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:model="clr-namespace:App.Core.Model;assembly=App.Core"
         xmlns:local="clr-namespace:FldrSrtr"
-        Title="Rule editor" Height="700" Width="900"
+        Title="Rule editor" Height="740" Width="960"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <local:ConditionNodeLabelConverter x:Key="NodeLabelConverter" />
     </Window.Resources>
     <Grid Margin="12">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="260" />
@@ -23,11 +24,21 @@
             <TextBlock Text="Rule name:" VerticalAlignment="Center" Width="90" />
             <TextBox x:Name="NameTextBox" Width="300" />
             <CheckBox x:Name="EnabledCheckBox" Content="Enabled" VerticalAlignment="Center" Margin="20,0,0,0" IsChecked="True" />
+            <CheckBox x:Name="AdvancedModeCheckBox" Content="Advanced mode" VerticalAlignment="Center" Margin="20,0,0,0"
+                      Checked="AdvancedModeCheckBox_Changed" Unchecked="AdvancedModeCheckBox_Changed" />
         </StackPanel>
 
-        <TextBlock Text="Conditions:" FontWeight="Bold" Grid.Row="1" Margin="0,0,0,4" />
+        <Border Grid.Row="1" x:Name="VariableHelpPanel" Visibility="Collapsed" Background="#FFF4F4F4" Padding="8" Margin="0,0,0,8">
+            <TextBlock TextWrapping="Wrap" FontFamily="Consolas">
+                Variabelen (in Destination/Arguments): {FileName} {OriginalName} {Extension} {OriginalExtension} {FullPath} {Directory} {FileSize} {Year} {Month} {Day} {Hour} {Minute} {Second} {Date} {Time}
+                <LineBreak />
+                Voorbeeld: D:\Archief\{Year}\{Month}\{FileName}.{Extension}
+            </TextBlock>
+        </Border>
 
-        <Grid Grid.Row="2">
+        <TextBlock Text="Conditions:" FontWeight="Bold" Grid.Row="2" Margin="0,0,0,4" />
+
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="340" />
                 <ColumnDefinition Width="*" />
@@ -71,18 +82,20 @@
                         <TextBox x:Name="ValueTextBox" Width="220" TextChanged="LeafField_Changed" />
                     </StackPanel>
                     <CheckBox x:Name="CaseSensitiveCheckBox" Content="Case-sensitive" Margin="70,0,0,10" Checked="LeafField_Changed" Unchecked="LeafField_Changed" />
+                    <TextBlock x:Name="DuplicateHintText" Text="Tip: bij Field 'Duplicate' is Value 'true' of 'false'." Foreground="Gray" Margin="70,0,0,10" Visibility="Collapsed" />
                     <Button Content="Remove this condition" HorizontalAlignment="Left" Click="RemoveSelectedNode_Click" />
                 </StackPanel>
             </StackPanel>
         </Grid>
 
-        <TextBlock Text="Actions (uitgevoerd in volgorde):" FontWeight="Bold" Grid.Row="3" Margin="0,12,0,4" />
+        <TextBlock Text="Actions (uitgevoerd in volgorde):" FontWeight="Bold" Grid.Row="4" Margin="0,12,0,4" />
 
-        <DataGrid x:Name="ActionsGrid" Grid.Row="4" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding}">
+        <DataGrid x:Name="ActionsGrid" Grid.Row="5" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding}">
             <DataGrid.Columns>
-                <DataGridComboBoxColumn x:Name="ActionTypeColumn" Header="Action" SelectedItemBinding="{Binding Type}" Width="140" />
+                <DataGridComboBoxColumn x:Name="ActionTypeColumn" Header="Action" SelectedItemBinding="{Binding Type}" Width="130" />
                 <DataGridTextColumn Header="Destination / new name" Binding="{Binding Destination}" Width="*" />
-                <DataGridComboBoxColumn x:Name="OnConflictColumn" Header="On conflict" SelectedItemBinding="{Binding OnConflict}" Width="120" />
+                <DataGridTextColumn Header="Arguments (ExecuteExternal)" Binding="{Binding Arguments}" Width="180" />
+                <DataGridComboBoxColumn x:Name="OnConflictColumn" Header="On conflict" SelectedItemBinding="{Binding OnConflict}" Width="110" />
                 <DataGridTemplateColumn Header="" Width="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -96,9 +109,9 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <Button Content="+ Add action" Grid.Row="5" HorizontalAlignment="Left" Margin="0,4,0,12" Click="AddAction_Click" />
+        <Button Content="+ Add action" Grid.Row="6" HorizontalAlignment="Left" Margin="0,4,0,12" Click="AddAction_Click" />
 
-        <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right">
+        <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right">
             <Button Content="Cancel" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
             <Button Content="Save" Width="90" Click="Save_Click" IsDefault="True" />
         </StackPanel>

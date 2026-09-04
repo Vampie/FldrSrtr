@@ -36,10 +36,18 @@ namespace App.Core.Execution
         /// </summary>
         public List<ExecutionResult> ExecuteRule(Rule rule, IEnumerable<FileEntry> files, bool dryRun)
         {
+            IReadOnlyList<FileEntry> fileList = files as IReadOnlyList<FileEntry> ?? files.ToList();
+
+            if (DuplicateDetector.RuleChecksDuplicates(rule.RootCondition))
+            {
+                DuplicateDetector.MarkDuplicates(fileList, _fileOps);
+            }
+
             var results = new List<ExecutionResult>();
             var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            DateTime now = DateTime.Now;
 
-            foreach (FileEntry file in GetMatches(rule, files))
+            foreach (FileEntry file in GetMatches(rule, fileList))
             {
                 if (!seenPaths.Add(file.FullPath))
                 {
@@ -50,7 +58,7 @@ namespace App.Core.Execution
 
                 foreach (RuleAction action in rule.Actions)
                 {
-                    PlannedAction plan = PlanAction(file, action, currentPath);
+                    PlannedAction plan = PlanAction(file, action, currentPath, now);
                     ExecutionResult result = Execute(plan, dryRun);
                     results.Add(result);
 
@@ -69,7 +77,7 @@ namespace App.Core.Execution
                         break; // file is gone, nothing left to chain onto
                     }
 
-                    if (plan.ResolvedDestinationPath != null)
+                    if (ChangesLocation(action.Type) && plan.ResolvedDestinationPath != null)
                     {
                         currentPath = plan.ResolvedDestinationPath;
                     }
@@ -79,8 +87,13 @@ namespace App.Core.Execution
             return results;
         }
 
-        public PlannedAction PlanAction(FileEntry file, RuleAction action, string currentPath)
+        private static bool ChangesLocation(ActionType type) =>
+            type == ActionType.Move || type == ActionType.Rename ||
+            type == ActionType.AddExtension || type == ActionType.RemoveExtension;
+
+        public PlannedAction PlanAction(FileEntry file, RuleAction action, string currentPath, DateTime? now = null)
         {
+            DateTime effectiveNow = now ?? DateTime.Now;
             var plan = new PlannedAction
             {
                 File = file,
@@ -88,14 +101,59 @@ namespace App.Core.Execution
                 OriginalPath = currentPath
             };
 
-            if (action.Type == ActionType.DeleteToRecycleBin)
+            switch (action.Type)
             {
-                return plan;
-            }
+                case ActionType.DeleteToRecycleBin:
+                case ActionType.Open:
+                    return plan;
 
-            string desiredPath = ComputeDesiredPath(currentPath, action);
-            plan.ResolvedDestinationPath = ResolveConflict(desiredPath, action.OnConflict, plan);
-            return plan;
+                case ActionType.OpenWith:
+                case ActionType.ExecuteExternal:
+                    plan.ResolvedDestinationPath = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow);
+                    plan.ResolvedArguments = VariableResolver.Resolve(action.Arguments, file, currentPath, effectiveNow);
+                    return plan;
+
+                case ActionType.CreateFolder:
+                case ActionType.Zip:
+                    plan.ResolvedDestinationPath = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow);
+                    return plan;
+
+                case ActionType.AddExtension:
+                    {
+                        string ext = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow).TrimStart('.');
+                        string desired = currentPath + "." + ext;
+                        plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
+                        return plan;
+                    }
+
+                case ActionType.RemoveExtension:
+                    {
+                        string dir = Path.GetDirectoryName(currentPath);
+                        string nameNoExt = Path.GetFileNameWithoutExtension(currentPath);
+                        string desired = Path.Combine(dir ?? string.Empty, nameNoExt);
+                        plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
+                        return plan;
+                    }
+
+                case ActionType.Rename:
+                    {
+                        string dir = Path.GetDirectoryName(currentPath);
+                        string newName = VariableResolver.Resolve(action.Destination, file, currentPath, effectiveNow);
+                        string desired = Path.Combine(dir ?? string.Empty, newName);
+                        plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
+                        return plan;
+                    }
+
+                default: // Move, Copy
+                    {
+                        string template = action.Destination ?? string.Empty;
+                        string resolved = VariableResolver.Resolve(template, file, currentPath, effectiveNow);
+                        bool includesFileName = template.Contains("{FileName}") || template.Contains("{OriginalName}");
+                        string desired = includesFileName ? resolved : Path.Combine(resolved, Path.GetFileName(currentPath));
+                        plan.ResolvedDestinationPath = ResolveConflict(desired, action.OnConflict, plan);
+                        return plan;
+                    }
+            }
         }
 
         public ExecutionResult Execute(PlannedAction plan, bool dryRun)
@@ -111,6 +169,8 @@ namespace App.Core.Execution
                 {
                     case ActionType.Move:
                     case ActionType.Rename:
+                    case ActionType.AddExtension:
+                    case ActionType.RemoveExtension:
                         _fileOps.Move(plan.OriginalPath, plan.ResolvedDestinationPath);
                         break;
                     case ActionType.Copy:
@@ -119,6 +179,21 @@ namespace App.Core.Execution
                     case ActionType.DeleteToRecycleBin:
                         _fileOps.DeleteToRecycleBin(plan.OriginalPath);
                         break;
+                    case ActionType.Open:
+                        _fileOps.OpenFile(plan.OriginalPath);
+                        break;
+                    case ActionType.OpenWith:
+                        _fileOps.OpenFileWith(plan.ResolvedDestinationPath, plan.OriginalPath);
+                        break;
+                    case ActionType.ExecuteExternal:
+                        _fileOps.ExecuteExternal(plan.ResolvedDestinationPath, plan.ResolvedArguments);
+                        break;
+                    case ActionType.CreateFolder:
+                        _fileOps.CreateDirectory(plan.ResolvedDestinationPath);
+                        break;
+                    case ActionType.Zip:
+                        _fileOps.AddToZip(plan.OriginalPath, plan.ResolvedDestinationPath);
+                        break;
                 }
                 return new ExecutionResult { Plan = plan, Success = true };
             }
@@ -126,18 +201,6 @@ namespace App.Core.Execution
             {
                 return new ExecutionResult { Plan = plan, Success = false, ErrorMessage = ex.Message };
             }
-        }
-
-        private static string ComputeDesiredPath(string currentPath, RuleAction action)
-        {
-            if (action.Type == ActionType.Rename)
-            {
-                string directory = Path.GetDirectoryName(currentPath);
-                return Path.Combine(directory ?? string.Empty, action.Destination);
-            }
-
-            string fileName = Path.GetFileName(currentPath);
-            return Path.Combine(action.Destination, fileName);
         }
 
         private string ResolveConflict(string desiredPath, ConflictResolution resolution, PlannedAction plan)
