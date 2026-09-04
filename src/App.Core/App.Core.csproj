@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net481</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>App.Core</RootNamespace>
+    <AssemblyName>App.Core</AssemblyName>
+  </PropertyGroup>
+
+</Project>

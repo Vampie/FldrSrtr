@@ -1,0 +1,22 @@
+<Window x:Class="FoldrSortr.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FoldrSortr" Height="600" Width="900">
+    <TabControl Margin="8">
+        <TabItem Header="Dashboard">
+            <TextBlock Text="Dashboard — statistieken volgen in Fase 4" Margin="16" />
+        </TabItem>
+        <TabItem Header="Folders">
+            <TextBlock Text="Folders — mapbeheer volgt in Fase 1" Margin="16" />
+        </TabItem>
+        <TabItem Header="Rules">
+            <TextBlock Text="Rules — rule editor volgt in Fase 1" Margin="16" />
+        </TabItem>
+        <TabItem Header="Activity">
+            <TextBlock Text="Activity — activity-log volgt in Fase 1" Margin="16" />
+        </TabItem>
+        <TabItem Header="Settings">
+            <TextBlock Text="Settings — instellingen volgen in latere fases" Margin="16" />
+        </TabItem>
+    </TabControl>
+</Window>

@@ -1,0 +1,35 @@
+# Build-output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Release/publish-output van het portable releasescript
+/publish/
+/release/
+*.zip
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# Portable-configuratie/logs die tijdens het lokaal testen ontstaan
+/config/
+/activity.jsonl
+config.backup.*.json
+
+# OS-ruis
+Thumbs.db
+desktop.ini
