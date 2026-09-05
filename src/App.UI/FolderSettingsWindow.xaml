@@ -1,9 +1,9 @@
+<!-- No ui:WindowHelper.UseModernWindowStyle — see ConflictDialog.xaml for why. -->
 <Window x:Class="FldrSrtr.FolderSettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:FldrSrtr"
         xmlns:ui="http://schemas.modernwpf.com/2019"
-        ui:WindowHelper.UseModernWindowStyle="True"
         Title="{local:Loc FolderSettings.Title}" Height="480" Width="480"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="16">

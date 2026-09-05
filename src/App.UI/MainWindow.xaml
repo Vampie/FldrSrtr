@@ -113,7 +113,8 @@
                         <Button Content="{local:Loc Folders.ImportFolder}" Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportFolder_Click" />
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Top" Text="{local:Loc Folders.Title}" FontWeight="Bold" Margin="0,0,0,4" />
-                    <ListBox x:Name="FoldersList" SelectionChanged="FoldersList_SelectionChanged" MouseDoubleClick="FoldersList_MouseDoubleClick">
+                    <ListBox x:Name="FoldersList" ItemContainerStyle="{StaticResource CompactListBoxItem}"
+                             SelectionChanged="FoldersList_SelectionChanged" MouseDoubleClick="FoldersList_MouseDoubleClick">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -155,7 +156,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <ListBox x:Name="RulesList" Grid.Column="0" Margin="0,0,8,0"
+                        <ListBox x:Name="RulesList" Grid.Column="0" Margin="0,0,8,0" ItemContainerStyle="{StaticResource CompactListBoxItem}"
                                  SelectionChanged="RulesList_SelectionChanged" MouseDoubleClick="RulesList_MouseDoubleClick">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
@@ -247,6 +248,7 @@
         </TabItem>
 
         <TabItem Header="{local:Loc MainWindow.Tab.Settings}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="16">
                 <TextBlock Text="{local:Loc Settings.Safety}" FontWeight="Bold" Margin="0,0,0,8" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
@@ -265,7 +267,7 @@
                         <Button Content="{local:Loc Common.Browse}" Tag="Icons/icon-browse.png" Style="{StaticResource IconButton}" Margin="0,0,4,0" Click="BrowseProtectedFolder_Click" />
                         <Button Content="{local:Loc Common.Add}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedFolder_Click" />
                     </StackPanel>
-                    <ListBox x:Name="ProtectedFoldersListBox">
+                    <ListBox x:Name="ProtectedFoldersListBox" ItemContainerStyle="{StaticResource CompactListBoxItem}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -283,7 +285,7 @@
                         <TextBox x:Name="NewProtectedExtensionTextBox" Width="150" Margin="0,0,4,0" />
                         <Button Content="{local:Loc Common.Add}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="AddProtectedExtension_Click" />
                     </StackPanel>
-                    <ListBox x:Name="ProtectedExtensionsListBox">
+                    <ListBox x:Name="ProtectedExtensionsListBox" ItemContainerStyle="{StaticResource CompactListBoxItem}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -313,6 +315,14 @@
                 <TextBlock Text="{local:Loc Settings.Language.Help}"
                            Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
 
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <TextBlock Text="{local:Loc Settings.Theme}" Width="200" VerticalAlignment="Center" />
+                    <ComboBox x:Name="ThemeComboBox" Width="120" Margin="0,0,8,0" />
+                    <Button Content="{local:Loc Settings.CustomizeTheme}" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Click="CustomizeTheme_Click" />
+                </StackPanel>
+                <TextBlock Text="{local:Loc Settings.Theme.Help}"
+                           Foreground="Gray" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,20" />
+
                 <TextBlock Text="{local:Loc Settings.Backups}" FontWeight="Bold" Margin="0,0,0,8" />
                 <CheckBox x:Name="BackupOnSettingsChangeCheckBox" Content="{local:Loc Settings.BackupOnSettingsChange}" Margin="0,0,0,4" />
                 <TextBlock Text="{local:Loc Settings.BackupOnSettingsChange.Help}"
@@ -328,6 +338,7 @@
                     <Button Content="{local:Loc Settings.ImportConfig}" Tag="Icons/icon-import.png" Style="{StaticResource IconButton}" Click="ImportConfig_Click" />
                 </StackPanel>
             </StackPanel>
+            </ScrollViewer>
         </TabItem>
     </TabControl>
 </Window>

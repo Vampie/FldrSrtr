@@ -1,0 +1,35 @@
+<!-- No ui:WindowHelper.UseModernWindowStyle — see ConflictDialog.xaml for why. -->
+<Window x:Class="FldrSrtr.ThemeEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:FldrSrtr"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        Title="{local:Loc ThemeEditor.Title}" Width="440" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <StackPanel Margin="16">
+        <TextBlock TextWrapping="Wrap" Margin="0,0,0,12" Text="{local:Loc ThemeEditor.Intro}" />
+
+        <TextBlock Text="{local:Loc ThemeEditor.Base}" FontWeight="Bold" Margin="0,0,0,4" />
+        <RadioButton x:Name="SystemRadio" GroupName="Base" Content="{local:Loc ThemeEditor.Base.System}" Margin="0,0,0,4" Checked="Base_Checked" />
+        <RadioButton x:Name="LightRadio" GroupName="Base" Content="{local:Loc ThemeEditor.Base.Light}" Margin="0,0,0,4" Checked="Base_Checked" />
+        <RadioButton x:Name="DarkRadio" GroupName="Base" Content="{local:Loc ThemeEditor.Base.Dark}" Margin="0,0,0,12" Checked="Base_Checked" />
+
+        <TextBlock Text="{local:Loc ThemeEditor.Accent}" FontWeight="Bold" Margin="0,0,0,4" />
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+            <Border x:Name="AccentSwatch" Width="24" Height="24" BorderBrush="Gray" BorderThickness="1" Margin="0,0,8,0" />
+            <Button Content="{local:Loc ThemeEditor.PickColor}" Tag="Icons/icon-edit.png" Style="{StaticResource IconButton}" Margin="0,0,8,0" Click="PickColor_Click" />
+            <Button Content="{local:Loc ThemeEditor.DefaultColor}" Style="{StaticResource IconButton}" Click="DefaultColor_Click" />
+        </StackPanel>
+
+        <TextBlock Text="{local:Loc ThemeEditor.SaveAs}" FontWeight="Bold" Margin="0,0,0,4" />
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+            <TextBox x:Name="NewThemeNameTextBox" Width="200" Margin="0,0,8,0" />
+            <Button Content="{local:Loc ThemeEditor.SaveAsTheme}" Tag="Icons/icon-add.png" Style="{StaticResource IconButton}" Click="SaveAsTheme_Click" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="{local:Loc Common.Cancel}" Tag="Icons/icon-cancel.png" Style="{StaticResource IconButton}" Width="90" Margin="0,0,8,0" Click="Cancel_Click" />
+            <Button Content="{local:Loc Common.Ok}" Tag="Icons/icon-run.png" Style="{StaticResource IconButton}" Width="90" Click="Ok_Click" IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -15,6 +15,7 @@ using App.Infrastructure.Execution;
 using App.Infrastructure.Notifications;
 using App.Infrastructure.Safety;
 using App.Infrastructure.Scanning;
+using ModernWpf;
 
 namespace FldrSrtr
 {
@@ -841,6 +842,13 @@ namespace FldrSrtr
                 LanguageComboBox.SelectedIndex = 0;
             }
 
+            ThemeComboBox.ItemsSource = ThemeProvider.GetAvailableThemes();
+            ThemeComboBox.SelectedItem = _config.Settings.Theme;
+            if (ThemeComboBox.SelectedItem == null)
+            {
+                ThemeComboBox.SelectedIndex = 0;
+            }
+
             BackupOnSettingsChangeCheckBox.IsChecked = _config.Settings.BackupOnSettingsChange;
         }
 
@@ -863,12 +871,21 @@ namespace FldrSrtr
             string newLanguage = LanguageComboBox.SelectedItem as string ?? Localization.DefaultLanguage;
             bool languageChanged = newLanguage != _config.Settings.Language;
 
+            string newTheme = ThemeComboBox.SelectedItem as string ?? ThemeProvider.SystemThemeName;
+            bool themeChanged = newTheme != _config.Settings.Theme;
+
             _config.Settings.ConfirmationThreshold = threshold;
             _config.Settings.MaxFilesPerRun = maxFiles;
             _config.Settings.IconSet = newIconSet;
             _config.Settings.Language = newLanguage;
+            _config.Settings.Theme = newTheme;
             _config.Settings.BackupOnSettingsChange = BackupOnSettingsChangeCheckBox.IsChecked == true;
             SaveSettingsConfig();
+
+            if (themeChanged)
+            {
+                ThemeProvider.ApplySetting(newTheme);
+            }
 
             if (iconSetChanged)
             {
@@ -888,6 +905,21 @@ namespace FldrSrtr
             }
 
             MessageBox.Show(this, Localization.Get("Settings.Saved"), "FldrSrtr", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void CustomizeTheme_Click(object sender, RoutedEventArgs e)
+        {
+            string currentThemeName = ThemeComboBox.SelectedItem as string ?? _config.Settings.Theme;
+            string currentAccentHex = ThemeManager.Current.AccentColor is System.Windows.Media.Color c
+                ? $"#{c.R:X2}{c.G:X2}{c.B:X2}"
+                : null;
+
+            var window = new ThemeEditorWindow(currentThemeName, ThemeManager.Current.ApplicationTheme, currentAccentHex) { Owner = this };
+            bool ok = window.ShowDialog() == true;
+
+            string selection = ok ? window.SavedThemeName : currentThemeName;
+            ThemeComboBox.ItemsSource = ThemeProvider.GetAvailableThemes();
+            ThemeComboBox.SelectedItem = selection;
         }
 
         private void IconOverrides_Click(object sender, RoutedEventArgs e)

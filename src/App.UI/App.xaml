@@ -38,6 +38,14 @@
                 <Setter Property="Margin" Value="0,0,0,0" />
             </Style>
 
+            <!-- ModernWpf's default ListBoxItem padding/min-height is touch-sized and makes dense
+                 lists (folders, rules, protected-folder/extension entries) take up far more room
+                 than the content needs — this tightens rows back down for that kind of list. -->
+            <Style x:Key="CompactListBoxItem" TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                <Setter Property="Padding" Value="8,4" />
+                <Setter Property="MinHeight" Value="0" />
+            </Style>
+
             <!-- Soft "card" surface for grouping content (Dashboard stat tiles, the quick-action
                  panel, help panels, ...) — replaces the flat 1px gray-Border look with a subtly
                  shaded, rounded surface that follows the active (light/dark) theme automatically. -->

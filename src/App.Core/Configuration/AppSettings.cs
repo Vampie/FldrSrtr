@@ -52,5 +52,9 @@ namespace App.Core.Configuration
         /// <summary>UI language — a code matching a file under Languages\ (see Localization).
         /// Takes effect after a restart.</summary>
         public string Language { get; set; } = "nl";
+
+        /// <summary>Visual theme — "Systeem"/"Licht"/"Donker", or a custom theme saved under
+        /// Themes\ (see ThemeProvider). Applied live when changed in Settings, no restart needed.</summary>
+        public string Theme { get; set; } = "Systeem";
     }
 }

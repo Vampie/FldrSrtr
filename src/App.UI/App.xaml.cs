@@ -26,6 +26,7 @@ namespace FldrSrtr
                 IconSetProvider.ApplySetting(config.Settings.IconSet);
                 IconSetProvider.ApplyOverrides(config.Settings.IconOverrides);
                 Localization.ApplyLanguage(config.Settings.Language);
+                ThemeProvider.ApplySetting(config.Settings.Theme);
             }
             catch (System.InvalidOperationException ex)
             {
